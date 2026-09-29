@@ -1,0 +1,4 @@
+build/
+tests/roms-local/
+__pycache__/
+minibox-diag.log

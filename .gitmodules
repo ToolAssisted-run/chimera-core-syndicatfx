@@ -1,0 +1,3 @@
+[submodule "extern/syndicatfx"]
+	path = extern/syndicatfx
+	url = https://github.com/swfans/syndicatfx.git

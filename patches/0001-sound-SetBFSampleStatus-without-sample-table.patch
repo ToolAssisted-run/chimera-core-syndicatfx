@@ -1,0 +1,13 @@
+diff --git a/src/sound.c b/src/sound.c
+index d2f5946..e46431c 100644
+--- a/src/sound.c
++++ b/src/sound.c
+@@ -151,6 +151,8 @@ void SetBFSampleStatus(ubyte smp_id, ubyte stat)
+     struct BFSample *p_smp;
+     struct BFSampleStatus *p_status;
+ 
++    if (smptable == NULL) /* as the original (0x387e0): no sample table loaded, e.g. with sound off */
++        return;
+     p_smp = &smptable[smp_id];
+     p_status = &sample_status[smp_id];
+ 

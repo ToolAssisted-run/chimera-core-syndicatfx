@@ -1,0 +1,30 @@
+#pragma once
+// A minimal std::map for small key sets: a sorted array; insert() keeps the first value for a key.
+#include <stdlib.h>
+#include <utility>
+namespace std {
+template <class K, class V> class map {
+public:
+    typedef pair<K, V> value_type;
+    typedef value_type *iterator;
+    map() : d(0), n(0), cap(0) {}
+    ~map() { free(d); }
+    iterator begin() { return d; }
+    iterator end() { return d + n; }
+    iterator find(const K &k) { size_t i = lower(k); return (i < n && !(k < d[i].first) && !(d[i].first < k)) ? d + i : end(); }
+    pair<iterator, bool> insert(const value_type &v) {
+        size_t i = lower(v.first);
+        if (i < n && !(v.first < d[i].first)) return pair<iterator, bool>(d + i, false);
+        if (n == cap) { cap = cap ? cap * 2 : 64; d = (value_type *)realloc(d, cap * sizeof(value_type)); }
+        for (size_t j = n; j > i; j--) d[j] = d[j - 1];
+        d[i] = v; n++;
+        return pair<iterator, bool>(d + i, true);
+    }
+    size_t size() const { return n; }
+    bool empty() const { return n == 0; }
+    void clear() { n = 0; }
+private:
+    size_t lower(const K &k) const { size_t lo = 0, hi = n; while (lo < hi) { size_t m = (lo + hi) / 2; if (d[m].first < k) lo = m + 1; else hi = m; } return lo; }
+    value_type *d; size_t n, cap;
+};
+}

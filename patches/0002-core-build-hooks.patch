@@ -1,0 +1,55 @@
+diff --git a/src/game.c b/src/game.c
+index 08cbeae..0ea86d4 100644
+--- a/src/game.c
++++ b/src/game.c
+@@ -82,6 +82,10 @@ void _cdecl draw_mapwho(void);
+ void _cdecl draw_panel(void);
+ void _cdecl click_map(void);
+ void _cdecl level_finished(void);
++#if defined(SYNDICATFX_CORE)
++void core_game_turn(void);
++extern int core_frame_poll;
++#endif
+ 
+ 
+ bool
+@@ -172,8 +176,15 @@ game_update_full(bool wait)
+     int32_t start_ticks;
+ 
+     display_unlock();
++#if defined(SYNDICATFX_CORE)
++    wait = false; /* the core steps the game: no pacing to the wall clock */
++    core_frame_poll = 1; /* this input read ends the core's step (other reads re-read it) */
++#endif
+ 
+     game_handle_sdl_events();
++#if defined(SYNDICATFX_CORE)
++    core_frame_poll = 0;
++#endif
+ 
+     start_ticks = SDL_GetTicks();
+ 
+@@ -339,6 +350,9 @@ void syndicate(void)
+         init_state = 0;
+         while ((byte_60AFC & 1) != 0)
+         {
++#if defined(SYNDICATFX_CORE)
++            core_game_turn(); /* the game loop head (0x10214 in the original) */
++#endif
+             if (lbKeyOn[KC_F10])
+                 break;
+             if (init_state != 0) {
+diff --git a/src/main.c b/src/main.c
+index a7b63f9..feedcf1 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -259,7 +259,9 @@ nullsub_3 (void)
+ 
+ int main (int argc, char **argv)
+ {
++#if !defined(SYNDICATFX_CORE) /* the intro is a separate DOS program; the core has none */
+     run_intro(argc, argv);
++#endif
+ 
+     audio_options_set_default();
+     current_levno = 1;

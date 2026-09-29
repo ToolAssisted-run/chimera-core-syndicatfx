@@ -1,0 +1,4 @@
+// shimcxx: the libstdc++ headers bflibrary's C++ files include, for a freestanding i386 build on musl
+#pragma once
+#include <string.h>
+namespace std { using ::memcpy; using ::memset; using ::memmove; using ::memcmp; using ::strlen; using ::strcpy; using ::strncpy; using ::strcmp; using ::strncmp; using ::strcat; }

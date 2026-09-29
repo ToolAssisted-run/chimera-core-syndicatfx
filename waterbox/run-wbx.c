@@ -1,0 +1,295 @@
+/* run-wbx.c - drives core.wbx through the miniBox host over the same work dir
+ * and schedule as run-native, reporting the same digests, so the two builds
+ * diff directly. Every regular file in the work dir is mounted into the guest
+ * under its basename - exactly what the frontend does with a project's
+ * firmware and settings.
+ *
+ * usage: run-wbx <core.wbx> <workdir> [run-native's options] [--rerecord] [--session] [--session-at N]
+ *
+ * --rerecord round-trips the WHOLE guest machine through the host's save/load
+ * state before every step; the digests must be identical. --session saves the
+ * machine at a step (half way, or --session-at), tears the host down, builds a
+ * NEW host from the same core and files, loads the state into it and finishes
+ * the run there - the reopened-project case, and for this core the one that
+ * proves a game suspended on its own stack survives a new process.
+ */
+#include "minibox.h"
+
+#include <dirent.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+
+#include "gate-harness.h"
+
+/* matches waterbox.config memoryLayoutMiB: sbrk, sealed, invisible, plain, mmap */
+#define LAYOUT_MIB 64, 32, 4, 4, 160
+
+typedef struct { FILE *f; } freader;
+static intptr_t file_read(uintptr_t ud, uint8_t *d, uintptr_t s) { return (intptr_t)fread(d, 1, s, ((freader *)ud)->f); }
+typedef struct { uint8_t *b; size_t len, cap, pos; } membuf;
+static int32_t mem_write(uintptr_t ud, const uint8_t *d, uintptr_t n)
+{
+	membuf *m = (membuf *)ud;
+	if (m->len + n > m->cap) { m->cap = (m->len + n) * 2 + 64; m->b = realloc(m->b, m->cap); }
+	memcpy(m->b + m->len, d, n); m->len += n; return 0;
+}
+static intptr_t mem_read(uintptr_t ud, uint8_t *d, uintptr_t n)
+{
+	membuf *m = (membuf *)ud;
+	uintptr_t avail = m->len - m->pos; if (n > avail) n = avail;
+	memcpy(d, m->b + m->pos, n); m->pos += n; return (intptr_t)n;
+}
+
+typedef int (MB_GUEST_ABI *intfn)(void);
+typedef void (MB_GUEST_ABI *framefn)(uint64_t);
+typedef void (MB_GUEST_ABI *setfn)(int32_t, int32_t);
+typedef void (MB_GUEST_ABI *voidfn_i)(int);
+typedef uintptr_t (MB_GUEST_ABI *ptrfn)(void);
+typedef uintptr_t (MB_GUEST_ABI *ptrfn_i)(int);
+typedef int64_t (MB_GUEST_ABI *i64fn_i)(int);
+typedef uint64_t (MB_GUEST_ABI *u64fn)(void);
+
+static mb_host *g_host;
+static intfn g_Init;
+static ptrfn g_GetLoadError;
+static setfn g_SetButton, g_SetAxis;
+static framefn g_FrameAdvance;
+static ptrfn g_GetVideoBgra;
+static intfn g_GetVideoWidth, g_GetVideoHeight;
+static ptrfn g_GetAudio;
+static intfn g_GetAudioSampleCount;
+static intfn g_InputWasRead;
+static intfn g_GetMemoryDomainCount;
+static ptrfn_i g_GetMemoryDomainName, g_GetMemoryDomainPtr;
+static i64fn_i g_GetMemoryDomainSize;
+static intfn g_GetVsyncNumerator, g_GetVsyncDenominator;
+static u64fn g_GetCycleCount;
+static voidfn_i g_SetRenderingEnabled;
+static ptrfn g_GetGameProperties;
+typedef int (MB_GUEST_ABI *intfn_i32)(int32_t);
+static intfn_i32 g_IsButtonActive;
+static int g_rerecord;
+static int g_session;
+static long g_sessionAt = -1;
+static membuf g_state;
+static const char *g_wbxPath;
+static const char *g_workdir;
+static void build_host(void);
+static void resolve_exports(void);
+
+static uintptr_t proc(mb_host *h, const char *n)
+{
+	mb_return r;
+	wbx_get_proc_addr(h, n, &r);
+	if (r.error_message[0]) { fprintf(stderr, "proc %s: %s\n", n, r.error_message); exit(2); }
+	if (!r.data) { fprintf(stderr, "missing required export %s\n", n); exit(2); }
+	return r.data;
+}
+
+static int core_init(void) { return g_Init(); }
+static int core_init_done(void) { return 1; } /* Init runs before Seal, not in gate_run */
+static const char *core_load_error(void) { return (const char *)g_GetLoadError(); }
+static void core_set_button(int32_t i, int32_t s) { g_SetButton(i, s); }
+static void core_set_axis(int32_t i, int32_t v) { g_SetAxis(i, v); }
+static void core_frame(void) { g_FrameAdvance(0); }
+static void core_set_rendering(int on) { g_SetRenderingEnabled(on); }
+static const uint32_t *core_video(int *w, int *h)
+{
+	*w = g_GetVideoWidth();
+	*h = g_GetVideoHeight();
+	return (const uint32_t *)g_GetVideoBgra();
+}
+static const int16_t *core_audio(int *n)
+{
+	*n = g_GetAudioSampleCount();
+	return (const int16_t *)g_GetAudio();
+}
+static int core_input_was_read(void) { return g_InputWasRead(); }
+static int core_domain_count(void) { return g_GetMemoryDomainCount(); }
+static const char *core_domain_name(int i) { return (const char *)g_GetMemoryDomainName(i); }
+static uint8_t *core_domain_ptr(int i) { return (uint8_t *)g_GetMemoryDomainPtr(i); }
+static int64_t core_domain_size(int i) { return g_GetMemoryDomainSize(i); }
+static int core_vsync_numerator(void) { return g_GetVsyncNumerator(); }
+static int core_vsync_denominator(void) { return g_GetVsyncDenominator(); }
+static uint64_t core_clock(void) { return g_GetCycleCount(); }
+static const char *core_game_properties(void) { return (const char *)g_GetGameProperties(); }
+static int core_button_active(int32_t i) { return g_IsButtonActive(i); }
+
+static void core_pre_frame(long frame)
+{
+	mb_return r;
+	if (g_session && frame == g_sessionAt)
+	{
+		/* the machine leaves in a state and arrives in a new host */
+		g_state.len = 0;
+		wbx_save_state(g_host, mem_write, (uintptr_t)&g_state, &r);
+		if (r.error_message[0]) { fprintf(stderr, "save_state: %s\n", r.error_message); exit(1); }
+		wbx_deactivate_host(g_host, &r);
+		wbx_destroy_host(g_host, &r);
+		g_host = NULL;
+		build_host();
+		resolve_exports();
+		if (g_Init() != 1)
+		{
+			fprintf(stderr, "Init failed in the second host: %s\n", (const char *)g_GetLoadError());
+			exit(1);
+		}
+		wbx_deactivate_host(g_host, &r);
+		wbx_seal(g_host, &r);
+		if (r.error_message[0]) { fprintf(stderr, "seal: %s\n", r.error_message); exit(1); }
+		wbx_activate_host(g_host, &r);
+		g_state.pos = 0;
+		wbx_load_state(g_host, mem_read, (uintptr_t)&g_state, &r);
+		if (r.error_message[0]) { fprintf(stderr, "load_state (session): %s\n", r.error_message); exit(1); }
+		return;
+	}
+	if (!g_rerecord)
+		return;
+	g_state.len = 0;
+	wbx_save_state(g_host, mem_write, (uintptr_t)&g_state, &r);
+	if (r.error_message[0]) { fprintf(stderr, "save_state: %s\n", r.error_message); exit(1); }
+	g_state.pos = 0;
+	wbx_load_state(g_host, mem_read, (uintptr_t)&g_state, &r);
+	if (r.error_message[0]) { fprintf(stderr, "load_state: %s\n", r.error_message); exit(1); }
+}
+
+/* the host: the core loaded, every file of the work dir mounted, activated */
+static void build_host(void)
+{
+	FILE *wf = fopen(g_wbxPath, "rb");
+	if (!wf) { perror(g_wbxPath); exit(1); }
+
+	const uint32_t mib[] = { LAYOUT_MIB };
+	mb_memory_layout_template layout = { mib[0] << 20, mib[1] << 20, mib[2] << 20, mib[3] << 20, mib[4] << 20 };
+	freader fr = { wf };
+	mb_return r;
+	wbx_create_host(&layout, "core.wbx", file_read, (uintptr_t)&fr, &r);
+	fclose(wf);
+	if (r.error_message[0]) { fprintf(stderr, "create: %s\n", r.error_message); exit(1); }
+	g_host = (mb_host *)r.data;
+
+	/* the whole work dir, under the real names; the harness's own outputs
+	 * (.tga, .txt, .json, .raw, .bin) are not the guest's */
+	DIR *d = opendir(g_workdir);
+	if (!d) { perror(g_workdir); exit(1); }
+	struct dirent *de;
+	while ((de = readdir(d)) != NULL)
+	{
+		char path[4096];
+		snprintf(path, sizeof path, "%s/%s", g_workdir, de->d_name);
+		struct stat st;
+		if (stat(path, &st) != 0 || !S_ISREG(st.st_mode))
+			continue;
+		const char *dot = strrchr(de->d_name, '.');
+		if (dot && (!strcmp(dot, ".tga") || !strcmp(dot, ".txt") || !strcmp(dot, ".json") || !strcmp(dot, ".raw") || !strcmp(dot, ".bin")))
+			continue;
+		FILE *f = fopen(path, "rb");
+		if (!f) { perror(path); exit(1); }
+		freader rd = { f };
+		wbx_mount_file(g_host, de->d_name, file_read, (uintptr_t)&rd, false, &r);
+		fclose(f);
+		if (r.error_message[0]) { fprintf(stderr, "mount %s: %s\n", de->d_name, r.error_message); exit(1); }
+	}
+	closedir(d);
+
+	wbx_activate_host(g_host, &r);
+}
+
+static void resolve_exports(void)
+{
+	g_Init = (intfn)proc(g_host, "Init");
+	g_GetLoadError = (ptrfn)proc(g_host, "GetLoadError");
+	g_SetButton = (setfn)proc(g_host, "SetButton");
+	g_SetAxis = (setfn)proc(g_host, "SetAxis");
+	g_FrameAdvance = (framefn)proc(g_host, "FrameAdvance");
+	g_SetRenderingEnabled = (voidfn_i)proc(g_host, "SetRenderingEnabled");
+	g_GetVideoBgra = (ptrfn)proc(g_host, "GetVideoBgra");
+	g_GetVideoWidth = (intfn)proc(g_host, "GetVideoWidth");
+	g_GetVideoHeight = (intfn)proc(g_host, "GetVideoHeight");
+	g_GetAudio = (ptrfn)proc(g_host, "GetAudio");
+	g_GetAudioSampleCount = (intfn)proc(g_host, "GetAudioSampleCount");
+	g_InputWasRead = (intfn)proc(g_host, "InputWasRead");
+	g_GetMemoryDomainCount = (intfn)proc(g_host, "GetMemoryDomainCount");
+	g_GetMemoryDomainName = (ptrfn_i)proc(g_host, "GetMemoryDomainName");
+	g_GetMemoryDomainPtr = (ptrfn_i)proc(g_host, "GetMemoryDomainPtr");
+	g_GetMemoryDomainSize = (i64fn_i)proc(g_host, "GetMemoryDomainSize");
+	g_GetVsyncNumerator = (intfn)proc(g_host, "GetVsyncNumerator");
+	g_GetVsyncDenominator = (intfn)proc(g_host, "GetVsyncDenominator");
+	g_GetCycleCount = (u64fn)proc(g_host, "GetCycleCount");
+	g_GetGameProperties = (ptrfn)proc(g_host, "GetGameProperties");
+	g_IsButtonActive = (intfn_i32)proc(g_host, "IsButtonActive");
+}
+
+int main(int argc, char **argv)
+{
+	if (argc < 3)
+	{
+		fprintf(stderr, "usage: run-wbx <core.wbx> <workdir> [options] [--rerecord] [--session] [--session-at N]\n");
+		return 2;
+	}
+	g_wbxPath = argv[1];
+	g_workdir = argv[2];
+	for (int i = 3; i < argc; i++)
+	{
+		if (!strcmp(argv[i], "--rerecord")) g_rerecord = 1;
+		if (!strcmp(argv[i], "--session")) g_session = 1;
+		if (!strcmp(argv[i], "--session-at") && i + 1 < argc) { g_session = 1; g_sessionAt = strtol(argv[i + 1], 0, 0); }
+	}
+
+	static struct gate_opts o;
+	if (!gate_parse_opts(argc, argv, 3, &o))
+		return 2;
+	if (g_sessionAt < 0) g_sessionAt = o.frames / 2;
+
+	build_host();
+	resolve_exports();
+
+	struct gate_core c = {
+		.init = core_init,
+		.load_error = core_load_error,
+		.set_button = core_set_button,
+		.set_axis = core_set_axis,
+		.frame = core_frame,
+		.video = core_video,
+		.audio = core_audio,
+		.input_was_read = core_input_was_read,
+		.domain_count = core_domain_count,
+		.domain_name = core_domain_name,
+		.domain_ptr = core_domain_ptr,
+		.domain_size = core_domain_size,
+		.vsync_numerator = core_vsync_numerator,
+		.vsync_denominator = core_vsync_denominator,
+		.pre_frame = core_pre_frame,
+		.set_rendering = core_set_rendering,
+		.clock = core_clock,
+		.game_properties = core_game_properties,
+		.button_active = g_IsButtonActive ? core_button_active : NULL,
+	};
+
+	/* Init runs before Seal - the loaded machine is the sealed baseline */
+	if (c.init() != 1)
+	{
+		fprintf(stderr, "Init failed: %s\n", c.load_error());
+		printf("loadError=%s\n", c.load_error());
+		return 1;
+	}
+
+	mb_return r;
+	wbx_deactivate_host(g_host, &r);
+	wbx_seal(g_host, &r);
+	if (r.error_message[0]) { fprintf(stderr, "seal: %s\n", r.error_message); return 1; }
+	wbx_activate_host(g_host, &r);
+
+	c.init = core_init_done;
+	int ret = gate_run(&c, &o);
+	if (g_rerecord || g_session)
+		fprintf(stderr, "stateBytes=%zu\n", g_state.len);
+
+	wbx_deactivate_host(g_host, &r);
+	wbx_destroy_host(g_host, &r);
+	free(g_state.b);
+	return ret;
+}

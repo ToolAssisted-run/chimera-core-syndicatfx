@@ -1,0 +1,32 @@
+{
+  "package": "syndicatfx",
+  "effectiveTerms": "GPL-3.0-or-later for everything but the game code; the game code is Bullfrog's (see note)",
+  "commercialUse": "no: the translated game code is Bullfrog's disassembled executable, which carries no licence",
+  "note": "The built core combines this repository's integration (GPL-3.0-or-later), SyndicatFX's C library layer (GPL-3.0-or-later), the parts of musl libc its i386 build links (MIT), and SyndicatFX's src/syndre.sx: the original Syndicate MAIN.EXE by Bullfrog, disassembled and modified. That code is NOT under the GPL. SyndicatFX's COPYING says it distributes it without charge, in good faith, for owners of the original game, and will take it down should the copyright holders complain; this package carries it the same way, translated to C. The package carries none of Syndicate's data files: the game's original files are the project's firmware, supplied by the user. The menu texts it embeds are SyndicatFX's own translation files (lang/*.po).",
+  "components": [
+    {
+      "name": "chimera-core-syndicatfx (integration, the translator, the SDL2 shim)",
+      "license": "GPL-3.0-or-later",
+      "url": "https://github.com/ToolAssisted-run/chimera-core-syndicatfx",
+      "commit": "{selfCommit}",
+      "file": "LICENSE",
+      "sourceUrl": "https://github.com/ToolAssisted-run/chimera-core-syndicatfx/archive/{commit}.tar.gz"
+    },
+    {
+      "name": "SyndicatFX",
+      "license": "GPL-3.0-or-later, except src/*.sx (Bullfrog's disassembled game code: no licence, see COPYING)",
+      "url": "https://github.com/swfans/syndicatfx",
+      "commit": "{submodule:extern/syndicatfx}",
+      "file": "extern/syndicatfx/COPYING",
+      "sourceUrl": "https://github.com/swfans/syndicatfx/archive/{commit}.tar.gz"
+    },
+    {
+      "name": "musl libc 1.2.5 (the i386 build's C library, translated with the game)",
+      "license": "MIT",
+      "url": "https://musl.libc.org/",
+      "commit": "v1.2.5",
+      "file": "tools/licenses/musl-COPYRIGHT",
+      "sourceUrl": "https://musl.libc.org/releases/musl-1.2.5.tar.gz"
+    }
+  ]
+}
