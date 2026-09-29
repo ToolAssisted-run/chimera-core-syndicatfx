@@ -4,7 +4,7 @@
 # every memory domain - survive a savestate before every step and a new host in the middle of a run,
 # skip only the picture in turbo, and then:
 #   - declare what tables.py says (the wire, the settings, the firmware), nothing drifted
-#   - refuse a project without the game's files, naming one, and a damaged file, with both hashes
+#   - refuse a project without the game's files, naming one; take a file of the project's own in an original's place
 #   - export a property table that holds to chimera's docs/game-cores.md, obey a poke and hold a freeze
 #   - ask for the game's stack as a stack (MAP_STACK)
 #   - make the Sound Blaster's sound (the default), and none without a card, playing the same game
@@ -122,16 +122,22 @@ if [ ! -d "$data" ] || [ ! -f "$data/GAME01.DAT" ] && [ ! -f "$data/game01.dat" 
 	echo; echo "$ok ok, $failed failed, $skipped skipped"; [ "$failed" -eq 0 ]; exit
 fi
 
-# ------------------------------------------------------------------ 4. refusals
-wd="$(workdir damaged '{}' 1)"
-src="$(python3 -c "import os;d='$data';print(os.path.join(d,{f.upper():f for f in os.listdir(d)}['GAME01.DAT']))")"
-rm "$wd/GAME01.DAT"; cp "$src" "$wd/GAME01.DAT"
-chmod u+w "$wd/GAME01.DAT"; printf '\x55' | dd of="$wd/GAME01.DAT" bs=1 seek=100 conv=notrunc 2>/dev/null
-out="$(boxed "$wd" --frames 1 2>&1 | grep '^loadError=')"
-case "$out" in
-	*"GAME01.DAT is not the expected file"*expected*) report "refusal:damaged" PASS "${out#loadError=}" ;;
-	*) report "refusal:damaged" FAIL "Init did not refuse: $out" ;;
-esac
+# ------------------------------------------------------------------ 4. a file of the project's own
+# taken in the original's place (Chimera pins its hash; user-decided 2026-09-29): an MTITLE.DAT with 64 of
+# its palette's bytes changed plays, and the title's pictures are its
+wd="$(workdir custom-orig '{}' 1)"
+orig="$(boxed "$wd" --frames 400 --movie "$root/tests/movies/idle-m1.movie" 2>/dev/null | grep -E '^(loadError|frames|videoHash)')"
+wd="$(workdir custom-file '{}' 1)"
+src="$(python3 -c "import os;d='$data';print(os.path.join(d,{f.upper():f for f in os.listdir(d)}['MTITLE.DAT']))")"
+rm "$wd/MTITLE.DAT"; cp "$src" "$wd/MTITLE.DAT"; chmod u+w "$wd/MTITLE.DAT"
+python3 -c "import sys; p=sys.argv[1]; d=bytearray(open(p,'rb').read()); d[0x40:0x80]=bytes(b ^ 0x15 for b in d[0x40:0x80]); open(p,'wb').write(d)" "$wd/MTITLE.DAT"
+custom="$(boxed "$wd" --frames 400 --movie "$root/tests/movies/idle-m1.movie" 2>/dev/null | grep -E '^(loadError|frames|videoHash)')"
+if ! echo "$custom$orig" | grep -q loadError && echo "$custom" | grep -qx 'frames=400' &&
+   [ "$(echo "$custom" | grep videoHash)" != "$(echo "$orig" | grep videoHash)" ]; then
+	report "firmware:custom" PASS "an MTITLE.DAT of the project's own (64 palette bytes changed) is taken, and the title's pictures are its"
+else
+	report "firmware:custom" FAIL "custom [$(echo $custom)] original [$(echo $orig)]"
+fi
 
 # ------------------------------------------------------------------ 5. the runs
 movie="$root/tests/movies/idle-m1.movie"

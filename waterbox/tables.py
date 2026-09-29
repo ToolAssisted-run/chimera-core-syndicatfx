@@ -73,9 +73,14 @@ def main():
         for n in firmware_names():
             b = open(os.path.join(data, have[n]), "rb").read()
             fw.append({"id": n, "display": n, "name": n, "size": len(b), "sha1": hashlib.sha1(b).hexdigest().upper(),
-                       "description": "Syndicate Plus CD (EA/Bullfrog 1994): SYNDICAT\\DATA\\" + n})
+                       "description": "Syndicate Plus CD (EA/Bullfrog 1994): SYNDICAT\\DATA\\" + n + ". Yours to supply - the "
+                                      "package carries none of the game's data. A file of your own (a modified one) may take "
+                                      "its place: the project pins its hash."})
     else:
         fw = old.get("firmware", [])
+        for e in fw:
+            e["description"] = e["description"].split(". ")[0] + (". Yours to supply - the package carries none of the game's data. "
+                                                                  "A file of your own (a modified one) may take its place: the project pins its hash.")
     cfg = {
         "coreName": "SyndicatFX",
         "kind": "game",
@@ -111,9 +116,9 @@ def main():
         h.write("static const SfxButton sfx_buttons[] = {\n")
         for b in BUTTONS: h.write('    {"%s", %d, %d},\n' % (b[0], 1 if b[1] == "mouse" else 0, b[2]))
         h.write("};\n#define SFX_BUTTON_COUNT %d\n#define SFX_AXIS_COUNT %d\n" % (len(BUTTONS), len(AXES)))
-        h.write("typedef struct { const char *name; unsigned size; const char *sha1; } SfxFirmware;\n")
+        h.write("typedef struct { const char *name; } SfxFirmware;\n")
         h.write("static const SfxFirmware sfx_firmware[] = {\n")
-        for e in fw: h.write('    {"%s", %d, "%s"},\n' % (e["name"], e["size"], e["sha1"]))
+        for e in fw: h.write('    {"%s"},\n' % e["name"])
         h.write("};\n#define SFX_FIRMWARE_COUNT %d\n" % len(fw))
         h.write("static const char *const sfx_languages[][2] = {%s};\n#endif\n" % ", ".join('{"%s", "%s"}' % (k, v) for k, v in LANG_ARG.items()))
     print("buttons %d, axes %d, firmware %d" % (len(BUTTONS), len(AXES), len(fw)))

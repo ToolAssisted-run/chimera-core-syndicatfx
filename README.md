@@ -16,9 +16,10 @@ pointers staying 32-bit. Nothing of the game is reimplemented by hand.
 ## What it is
 
 - **Syndicate from the Syndicate Plus CD** (`SYNDICAT\DATA`, the base game; American Revolt is not in
-  SyndicatFX). The package carries none of the game's data: its 438 files are the project's **firmware**,
-  checked one by one against their SHA-1 at Init. A missing one is named; a damaged one is refused with
-  both hashes. The original sprites are used (`MSPR-0.DAT`), not SyndicatFX's fan pack.
+  SyndicatFX). The package carries none of the game's data: its 438 files are the project's **firmware**.
+  A missing one is named. A file of your own - a modified one - may take an original's place: the core
+  takes it as it is, and the project pins its hash. The original sprites are used (`MSPR-0.DAT`), not
+  SyndicatFX's fan pack.
 - **The same game as the original, turn by turn**: the level block (the seed, the people, vehicles,
   weapons, effects, commands, objectives) matches the DOS executable running in DOSBox-X at every turn of
   the runs in `tests/oracle/README.md` - 3,851 turns without input and a 2,120-turn firefight.
@@ -83,9 +84,10 @@ translates it (`tools/translate.sh`, about 390 thousand lines of C). miniBox is 
 ## The gate
 
 `./waterbox/run-gate.sh [-d <SYNDICAT\DATA dir>]` (or the files in `tests/roms-local`): the build, the
-declarations, the refusals, native == sandbox over a run into the first mission (with teeth), a savestate
-before every step, a new host in the middle, turbo, the property table with a poke and a freeze, and a
-deterministic package.
+declarations, the refusal of a project without the game's files, a file of the project's own in an
+original's place, native == sandbox over a run into the first mission (with teeth), a savestate
+before every step, a new host in the middle, turbo, the sound (heard; none without a card, and the same
+game), the property table with a poke and a freeze, and a deterministic package.
 
 ## Where things are
 
