@@ -133,9 +133,18 @@ uint64_t xl_rdtsc(void);
 
 extern void (*xl_hook)(uint32_t addr);   /* optional probe at hooked function entries (elf2c --hook) */
 
+/* code outside the static translation (xl_interp.c): xl_call() interprets an address in a registered
+ * range, until it returns to its caller */
+void xl_interp(uint32_t target);
+void xl_interp_range(uint32_t lo, uint32_t hi);
+int xl_interp_owns(uint32_t a);
+void xl_interp_reset(void);
+
 /* provided by the embedder */
 void xl_host_syscall(void);               /* eax = nr, ebx.. = args; result in eax */
 void xl_host_fatal(const char *msg);
+uint32_t xl_host_in(uint32_t port, int sz);             /* in (interpreted code only) */
+void xl_host_out(uint32_t port, uint32_t v, int sz);    /* out */
 
 extern const uint32_t xl_entry_addrs[];
 extern const XlFn xl_entry_fns[];

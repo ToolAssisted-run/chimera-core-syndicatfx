@@ -274,6 +274,7 @@ void xl_call(uint32_t target)
         if (xl_entry_addrs[mid] < target) lo = mid + 1; else hi = mid;
     }
     if (lo < xl_entry_count && xl_entry_addrs[lo] == target) { xl_entry_fns[lo](); return; }
+    if (xl_interp_owns(target)) { xl_interp(target); return; }
     char msg[80]; snprintf(msg, sizeof msg, "indirect branch to untranslated %08x (from %08x)", target, xl.eip);
     xl_host_fatal(msg);
 }

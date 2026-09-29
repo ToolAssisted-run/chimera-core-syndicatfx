@@ -23,7 +23,20 @@ objects, weapons, effects, commands and objectives), at the head of the game loo
 | No input after entering (`tests/scripts/idle-m1.script`) | 3,851 (3 in-game day rollovers) | identical |
 | Select all, arm pistols, assault the base (`tests/scripts/combat-m1.script`) | 2,120 (a firefight, 3,680 random draws) | identical |
 
-Both runs match with the Sound Blaster (`sfx-run --sound`, the core's default) and without a card alike.
+Both runs match with the Sound Blaster (`sfx-run --sound`, the core's default: sounds and music) and
+without a card alike.
+
+## The music
+
+The FM chip's register writes: the original with its sound on (`main /c0`, the Sound Blaster at its
+defaults, as DOSBox-X's SB16) through `tests/scripts/idle-m1.script`'s route into mission 1, logged by
+`oracle-run --fmtrace PATH` (every byte written to the chip's ports, with the emulated time), against
+`sfx-run --sound --fmtrace PATH` (every register write, with its PIT clock), by `tools/cmp_fm.py`:
+
+| Mission 1, 4,000 oracle frames | Writes | Result |
+|---|---|---|
+| The driver's detection of the chip, its initialization, the timbres and song 1's notes | 1,565 | identical, in order |
+| Their times after the first key-on, relative to it | 1,302 | within 1.1 ms (the timer's phase; its period is 8.33 ms) |
 
 The menus before a mission advance the game's clock once per pass of the briefing and team-selection
 screens (`process_day`), so a run matches the oracle only with the same number of passes there:

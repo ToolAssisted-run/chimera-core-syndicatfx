@@ -32,8 +32,8 @@ $(GEN)/lang_data.c: $(LANGS) $(ROOT)/tools/bin2c.py
 	$(PY) $(ROOT)/tools/bin2c.py $@ sfx_lang_eng=$(word 1,$(LANGS)) sfx_lang_fre=$(word 2,$(LANGS)) sfx_lang_ita=$(word 3,$(LANGS))
 
 # ---- the core
-CORE_NAMES := syndicatfx-driver sfx-machine game-state coro sha1 wbx-entry
-CORE_HDRS := syndicatfx-driver.h sfx-machine.h game-state.h coro.h sha1.h sfx-tables.h ../i386/hostcall.h ../xlat/xlat.h
+CORE_NAMES := syndicatfx-driver sfx-machine game-state coro sha1 wbx-entry opl3
+CORE_HDRS := syndicatfx-driver.h sfx-machine.h game-state.h coro.h sha1.h sfx-tables.h opl3.h ../i386/hostcall.h ../xlat/xlat.h
 DEFS := -DXL_ARENA_BITS=26 -I. -I$(ROOT)/xlat -I$(XL)
 # the translated code is generated: its warnings are the translator's business, not the build's
 XL_CFLAGS_COMMON := -std=gnu11 -O2 -w $(DEFS)

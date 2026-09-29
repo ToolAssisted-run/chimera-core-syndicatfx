@@ -1,0 +1,232 @@
+diff --git a/src/sound.c b/src/sound.c
+index d2b4023..51bbfc8 100644
+--- a/src/sound.c
++++ b/src/sound.c
+@@ -46,6 +46,9 @@
+ #include "applog.h"
+ #include "game_data.h"
+ #include "util.h"
++#if defined(SYNDICATFX_CORE)
++#include "ail32.h"
++#endif
+ 
+ /******************************************************************************/
+ #pragma pack(1)
+@@ -124,7 +127,17 @@ void init_audio(void)
+     LOGSYNC("Starting");
+     //sprintf(locstr, "%sSound", cd_drive); -- unused
+ 
++# if defined(SYNDICATFX_CORE)
++    {
++        /* the music is the original's (InitMIDI below), not bfsoundlib's */
++        TbBool music = (audOpts.AbleFlags & AudioAble_Music) != 0;
++        audOpts.AbleFlags &= ~AudioAble_Music;
++        InitAudio(&audOpts);
++        MusicAble = music;
++    }
++# else
+     InitAudio(&audOpts);
++# endif
+ # endif
+     if (MusicAble)
+         MusicAble = InitMIDI("sound/syngame.xmi", "data/gamefm.dll",
+@@ -314,6 +327,7 @@ void BFSoundResume(void)
+ #endif
+ }
+ 
++#if !defined(SYNDICATFX_CORE)
+ int InitMIDI(const char *bank_fname, char *drv_fname,
+   ushort sc_irq, ushort sc_dma, ushort sc_ioaddr)
+ {
+@@ -585,4 +599,191 @@ bool BFMidiIsMusicPlaying(void)
+     return (status == SNDSEQ_PLAYING);
+ }
+ 
++#else /* SYNDICATFX_CORE */
++/* The original's music: ASM_InitMIDI (0x3B5B0) and the routines after it, on the core's AIL/32 layer
++ * (i386/ail32.c) and the original's Ad Lib driver (data/gamefm.dll), which the core runs as it is.
++ * The song numbers are SyndicatFX's: the original's + 1, and 0 for none (the original's -1). */
++static HDRIVER MUSdrvr32 = -1;
++static HSEQUENCE music_seq[9];
++
++static void *read_whole_file(const char *fname, long *size)
++{
++    FILE *fh;
++    void *buf;
++    long len;
++
++    fh = fopen(fname, "rb");
++    if (fh == NULL)
++        return NULL;
++    fseek(fh, 0, SEEK_END);
++    len = ftell(fh);
++    fseek(fh, 0, SEEK_SET);
++    buf = malloc(len > 0 ? len : 1);
++    if (buf == NULL || fread(buf, 1, len, fh) != (size_t)len) {
++        free(buf);
++        fclose(fh);
++        return NULL;
++    }
++    fclose(fh);
++    if (size != NULL)
++        *size = len;
++    return buf;
++}
++
++/* load_global_timbre (0x3B4E0): a timbre from the Global Timbre Library */
++static void *load_global_timbre32(FILE *fh, int bank, int patch)
++{
++    ubyte hdr[6];
++    ushort len;
++    ubyte *p_timbre;
++
++    if (fh == NULL)
++        return NULL;
++    rewind(fh);
++    for (;;)
++    {
++        if (fread(hdr, 6, 1, fh) != 1)
++            return NULL;
++        if ((sbyte)hdr[1] == -1)
++            return NULL;
++        if ((sbyte)hdr[1] == bank && (sbyte)hdr[0] == patch)
++            break;
++    }
++    fseek(fh, hdr[2] | (hdr[3] << 8) | (hdr[4] << 16) | ((ulong)hdr[5] << 24), SEEK_SET);
++    fread(&len, 2, 1, fh);
++    p_timbre = malloc(len);
++    *(ushort *)p_timbre = len;
++    fread(p_timbre + 2, len - 2, 1, fh);
++    if (ferror(fh))
++        return NULL;
++    return p_timbre;
++}
++
++int InitMIDI(const char *bank_fname, char *drv_fname,
++  ushort sc_irq, ushort sc_dma, ushort sc_ioaddr)
++{
++    void *drvr_buf, *drvr_base, *p_musbank;
++    long drvr_size;
++    AIL32_DESC *desc;
++    char GTL_filename[96];
++    FILE *GTL_fh;
++    uint state_size, tc_size, sequence_num;
++
++    ail32_startup(); /* in the original, init_sound's */
++    drvr_buf = read_whole_file(drv_fname, &drvr_size);
++    if (drvr_buf == NULL)
++        return 0;
++    drvr_base = ail32_dll_load(drvr_buf, drvr_size);
++    if (drvr_base == NULL)
++        return 0;
++    free(drvr_buf);
++    MUSdrvr32 = ail32_register_driver(drvr_base);
++    if (MUSdrvr32 == -1)
++        return 0;
++    desc = ail32_describe_driver(MUSdrvr32);
++    if (desc->drvr_type != 3)
++        return 0;
++    if (sc_irq == 0)
++        sc_irq = desc->default_IRQ;
++    if (sc_dma == 0)
++        sc_dma = desc->default_DMA;
++    if (sc_ioaddr == 0)
++        sc_ioaddr = desc->default_IO;
++    if (!ail32_detect_device(MUSdrvr32, sc_ioaddr, sc_irq, sc_dma, desc->default_DRQ))
++        return 0;
++    ail32_init_driver(MUSdrvr32, sc_ioaddr, sc_irq, sc_dma, desc->default_DRQ);
++    state_size = ail32_state_table_size(MUSdrvr32);
++    p_musbank = read_whole_file(bank_fname, NULL);
++    if (p_musbank == NULL)
++        return 0;
++    strcpy(GTL_filename, "data/sample.");
++    strcat(GTL_filename, desc->data_suffix);
++    tc_size = (ushort)ail32_default_timbre_cache_size(MUSdrvr32);
++    if (tc_size > 0)
++        ail32_define_timbre_cache(MUSdrvr32, malloc(tc_size), tc_size);
++    GTL_fh = fopen(GTL_filename, "rb");
++    for (sequence_num = 0; sequence_num < 8; sequence_num++)
++    {
++        HSEQUENCE seq;
++
++        seq = ail32_register_sequence(MUSdrvr32, p_musbank, sequence_num, malloc(state_size), NULL);
++        music_seq[sequence_num + 1] = seq;
++        if (seq == -1)
++            break;
++        for (;;)
++        {
++            ushort req;
++            void *global_timbre;
++
++            req = ail32_timbre_request(MUSdrvr32, seq);
++            if (req == 0xFFFF)
++                break;
++            global_timbre = load_global_timbre32(GTL_fh, req / 256, req % 256);
++            if (global_timbre == NULL) {
++                LOGERR("Cannot load global timbre, sequence %d request 0x%04x", (int)sequence_num, (uint)req);
++                return 0;
++            }
++            ail32_install_timbre(MUSdrvr32, req / 256, req % 256, global_timbre);
++            free(global_timbre);
++        }
++    }
++    if (GTL_fh != NULL)
++        fclose(GTL_fh);
++    return 1;
++}
++
++void ShutdownMIDI(void)
++{
++    if (!GetMusicAble())
++        return;
++    ail32_shutdown("");
++}
++
++void BFMidiStartMusic(ushort song_no)
++{
++    if (!GetMusicAble() || !GetMusicActive()) {
++        if (SongCurrentlyPlaying > 0) {
++            ail32_stop_sequence(MUSdrvr32, music_seq[SongCurrentlyPlaying]);
++            SongCurrentlyPlaying = 0;
++        }
++        return;
++    }
++    if (SongCurrentlyPlaying == song_no || song_no < 1 || song_no > 8)
++        return;
++    if (SongCurrentlyPlaying > 0)
++        ail32_stop_sequence(MUSdrvr32, music_seq[SongCurrentlyPlaying]);
++    SongCurrentlyPlaying = song_no;
++    ail32_start_sequence(MUSdrvr32, music_seq[song_no]);
++}
++
++void BFMidiStopMusic(void)
++{
++    if (!GetMusicAble() || !GetMusicActive() || SongCurrentlyPlaying <= 0)
++        return;
++    ail32_stop_sequence(MUSdrvr32, music_seq[SongCurrentlyPlaying]);
++    SongCurrentlyPlaying = 0;
++}
++
++void BFMidiPauseSong(void)
++{
++    if (!GetMusicAble() || !GetMusicActive() || SongCurrentlyPlaying <= 0)
++        return;
++    ail32_stop_sequence(MUSdrvr32, music_seq[SongCurrentlyPlaying]);
++}
++
++void BFMidiResumeSong(void)
++{
++    if (!GetMusicAble() || !GetMusicActive() || SongCurrentlyPlaying <= 0)
++        return;
++    ail32_resume_sequence(MUSdrvr32, music_seq[SongCurrentlyPlaying]);
++}
++
++bool BFMidiIsMusicPlaying(void)
++{
++    if (SongCurrentlyPlaying <= 0)
++        return false;
++    return ail32_sequence_status(MUSdrvr32, music_seq[SongCurrentlyPlaying]) == 1; /* SEQ_PLAYING */
++}
++#endif /* SYNDICATFX_CORE */
++
+ /******************************************************************************/

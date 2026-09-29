@@ -12,7 +12,7 @@ CORE_CFLAGS := $(CORE_CFLAGS_COMMON) $(MBINCS)
 $(call flags_stamp,$(B),$(XL_CFLAGS) | $(CORE_CFLAGS))
 
 XL_OBJS = $(patsubst $(XL)/%.c,$(B)/xl/%.o,$(XL_SRCS))
-CORE_OBJS := $(addprefix $(B)/core/,$(addsuffix .o,$(CORE_NAMES))) $(B)/core/xlat_rt.o $(B)/core/lang_data.o
+CORE_OBJS := $(addprefix $(B)/core/,$(addsuffix .o,$(CORE_NAMES))) $(B)/core/xlat_rt.o $(B)/core/xl_interp.o $(B)/core/lang_data.o
 
 all: $(XLSTAMP)
 	$(MAKE) -f native.mk $(B)/run-native $(B)/run-wbx $(B)/sfx-run
@@ -24,6 +24,9 @@ $(B)/core/%.o: %.c $(CORE_HDRS) $(XLSTAMP) $(B)/flags
 	@mkdir -p $(dir $@)
 	gcc $(CORE_CFLAGS) -c -o $@ $<
 $(B)/core/xlat_rt.o: $(ROOT)/xlat/xlat_rt.c $(ROOT)/xlat/xlat.h $(B)/flags
+	@mkdir -p $(dir $@)
+	gcc $(CORE_CFLAGS) -c -o $@ $<
+$(B)/core/xl_interp.o: $(ROOT)/xlat/xl_interp.c $(ROOT)/xlat/xlat.h $(B)/flags
 	@mkdir -p $(dir $@)
 	gcc $(CORE_CFLAGS) -c -o $@ $<
 $(B)/core/lang_data.o: $(GEN)/lang_data.c
@@ -39,7 +42,7 @@ $(B)/run-native: $(CORE_OBJS) $(XL_OBJS) $(B)/core/run-native.o
 $(B)/core/sfx-run.o: $(ROOT)/tests/sfx-run.c sfx-machine.h $(ROOT)/xlat/xlat.h $(B)/flags
 	@mkdir -p $(dir $@)
 	gcc -O2 -Wall $(DEFS) -c -o $@ $<
-$(B)/sfx-run: $(B)/core/sfx-run.o $(B)/core/sfx-machine.o $(B)/core/coro.o $(B)/core/xlat_rt.o $(XL_OBJS)
+$(B)/sfx-run: $(B)/core/sfx-run.o $(B)/core/sfx-machine.o $(B)/core/coro.o $(B)/core/opl3.o $(B)/core/xlat_rt.o $(B)/core/xl_interp.o $(XL_OBJS)
 	gcc -o $@ $^ -lm
 
 # run-wbx links the miniBox host library

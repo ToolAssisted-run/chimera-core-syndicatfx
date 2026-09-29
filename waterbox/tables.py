@@ -40,8 +40,10 @@ SETTINGS = [
                     "briefings from the CD's own sets. Changes play (texts, layout), so a movie records it."},
     {"name": "sound", "display": "Sound", "type": "enum", "default": "Sound Blaster",
      "options": ["Sound Blaster", "None"],
-     "description": "The sound card the setup chose: the Sound Blaster (the only card the game supports; its "
-                    "digitized sounds, one at a time as on the card) or none (the original '-s' option)."},
+     "description": "The sound card the setup chose: the Sound Blaster (the default, the only card the game supports: "
+                    "its digitized sounds, one at a time as on the card, and the music on its FM chip by the game's own "
+                    "driver) or none (the original '-s' option). The game waits for its song to end before a won or "
+                    "lost mission ends, so the card changes play: a movie records it."},
 ]
 LANG_ARG = {"English": "0", "French": "1", "Italian": "2"}
 
@@ -86,8 +88,8 @@ def main():
         "video": {"_comment": "buffer capacity; the live size (320x200 menus, 640x480 missions) comes from GetVideoWidth/Height",
                   "width": 640, "height": 480, "virtualWidth": 640, "virtualHeight": 480,
                   "vsyncNumerator": 16, "vsyncDenominator": 1, "getBgra": "GetVideoBgra"},
-        "audio": {"_comment": "The Sound Blaster's digitized sounds (or none, with no card), rendered at 44100 Hz for exactly "
-                            "the time each step covers, the card's mono on both sides.",
+        "audio": {"_comment": "The Sound Blaster's digitized sounds and its FM chip's music (or none, with no card), rendered "
+                            "at 44100 Hz for exactly the time each step covers, the card's mono on both sides.",
                   "rate": 44100, "samplesPerFrame": 65536, "channels": 2, "get": "GetAudio"},
         "lag": {"inputWasRead": "InputWasRead"},
         "input": {"name": "Syndicate Controller",

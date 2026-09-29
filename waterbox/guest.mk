@@ -15,7 +15,7 @@ CORE_CFLAGS := $(CORE_CFLAGS_COMMON) $(GFLAGS)
 $(call flags_stamp,$(B),$(XL_CFLAGS) | $(CORE_CFLAGS))
 
 XL_OBJS = $(patsubst $(XL)/%.c,$(B)/xl/%.o,$(XL_SRCS))
-CORE_OBJS := $(addprefix $(B)/core/,$(addsuffix .o,$(CORE_NAMES))) $(B)/core/xlat_rt.o $(B)/core/lang_data.o
+CORE_OBJS := $(addprefix $(B)/core/,$(addsuffix .o,$(CORE_NAMES))) $(B)/core/xlat_rt.o $(B)/core/xl_interp.o $(B)/core/lang_data.o
 
 all: $(XLSTAMP)
 	$(MAKE) -f guest.mk $(B)/core.wbx
@@ -27,6 +27,9 @@ $(B)/core/%.o: %.c $(CORE_HDRS) $(XLSTAMP) $(B)/flags
 	@mkdir -p $(dir $@)
 	gcc $(CORE_CFLAGS) -c -o $@ $<
 $(B)/core/xlat_rt.o: $(ROOT)/xlat/xlat_rt.c $(ROOT)/xlat/xlat.h $(B)/flags
+	@mkdir -p $(dir $@)
+	gcc $(CORE_CFLAGS) -c -o $@ $<
+$(B)/core/xl_interp.o: $(ROOT)/xlat/xl_interp.c $(ROOT)/xlat/xlat.h $(B)/flags
 	@mkdir -p $(dir $@)
 	gcc $(CORE_CFLAGS) -c -o $@ $<
 $(B)/core/lang_data.o: $(GEN)/lang_data.c $(B)/flags

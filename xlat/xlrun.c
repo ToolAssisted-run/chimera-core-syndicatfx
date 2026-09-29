@@ -1,6 +1,7 @@
 /* xlrun.c - native test runner for translated i386 programs (not part of the core).
  * Loads the image into an arena, builds the process stack, and passes Linux i386 syscalls through
- * to the host OS (pointers translated). usage: xlrun [args...] */
+ * to the host OS (pointers translated). usage: xlrun [args...]
+ * Built with the translation and the runtime: xlat_rt.c, xl_interp.c. */
 #define _GNU_SOURCE
 #include "xlat.h"
 #include "xl_image.h"
@@ -22,6 +23,8 @@ static uint32_t brk_start, brk_cur, mmap_next;
 #define MMAP_BASE 0x08000000u
 
 void xl_host_fatal(const char *msg) { fprintf(stderr, "xlrun: fatal: %s\n", msg); exit(99); }
+uint32_t xl_host_in(uint32_t port, int sz) { (void)port; (void)sz; return 0xFF; }
+void xl_host_out(uint32_t port, uint32_t v, int sz) { (void)port; (void)v; (void)sz; }
 static void *G(uint32_t a) { return xl_mem + (a & XL_MASK); }
 static int32_t err(void) { return -errno; }
 

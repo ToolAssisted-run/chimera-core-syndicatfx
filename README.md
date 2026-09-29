@@ -6,7 +6,7 @@ the original game's code, as a [Chimera](https://github.com/ToolAssisted-run/chi
 briefings, team selection and the missions - stepped one pass of its loop at a time in miniBox's sandbox,
 packaged as `syndicatfx.chimeraCore`.
 
-**Built on upstream SyndicatFX with three small patches**, and **translated, not rewritten**: SyndicatFX is
+**Built on upstream SyndicatFX with four small patches**, and **translated, not rewritten**: SyndicatFX is
 the original `MAIN.EXE` as i386 assembly plus a C library layer, which only builds for 32-bit x86, while
 Chimera's cores are x86-64. The core builds SyndicatFX as one static i386 ELF (musl, and an SDL2 shim of its
 own in place of SDL, and a small OpenAL of its own) and translates that ELF's machine code to portable C
@@ -33,11 +33,20 @@ pointers staying 32-bit. Nothing of the game is reimplemented by hand.
 - **Settings**: the language (English, French, Italian - the original's `-c`): the menus from SyndicatFX's
   translations, the briefings from the CD's own sets. The sound card: the Sound Blaster (the default, the
   only card the game supports) or none (the original's `-s`).
-- **Sound**: the Sound Blaster's digitized sounds, one at a time as the card played them (patches/0003),
-  rendered at 44100 Hz for exactly the time each step covers. SyndicatFX's bfsoundlib plays them through
-  OpenAL; the core's OpenAL (`i386/oal.c`) is a mixer inside the translated program that plays its sources
-  only when a step ends, so the sound is part of the machine's state and the same in every run. The game
-  is the same with sound and without: the oracle runs match either way. No music yet (the card's FM).
+- **Sound**: the Sound Blaster's, rendered at 44100 Hz for exactly the time each step covers.
+  - The digitized sounds, one at a time as the card played them (patches/0003). SyndicatFX's bfsoundlib
+    plays them through OpenAL; the core's OpenAL (`i386/oal.c`) is a mixer inside the translated program
+    that plays its sources only when a step ends, so the sound is part of the machine's state.
+  - The FM music is the original's own: its music driver - `GAMEFM.DLL`, AIL/32's Ad Lib driver, from the
+    game's files - loaded and run as it is by an interpreter in the translation runtime
+    (`xlat/xl_interp.c`), on a C port of the AIL/32 layer `MAIN.EXE` drives it with (`i386/ail32.c`,
+    patches/0004). Its timer interrupt runs at the PIT's own period (120 Hz), each at its time; the chip is
+    Nuked OPL3 in OPL2 mode, every write rendered where it happened. SyndicatFX itself has no path to this
+    music (its OpenAL build needs WildMIDI and plays other instruments). The register writes are the
+    original's, write for write (`tests/oracle/README.md`).
+  - The music is not only sound: when a mission is won or lost, the game plays a song and ends the mission
+    when it has finished (0x10D9E), so the music decides how many turns that takes. The game is otherwise
+    the same with sound and without: the oracle runs match either way.
 - **Memory**: `Level` (the level block, in place), `Arena` (the translated program's whole 64 MiB address
   space) and a small `Game State` block (steps, turns, mission, ended). **Properties** by name: the level's
   random seed and timer, the steps, turns and mission.
@@ -53,6 +62,8 @@ pointers staying 32-bit. Nothing of the game is reimplemented by hand.
   card driver (AIL 2) plays one digitized sample at a time - a new one replaces what plays
   (`AIL_play_VOC_file`), and the game's sound priorities (`BFSonundUnkn1`, 0x388F0) hold only until the
   card is done. The patch restores that.
+- `patches/0004`: the music as the original plays it (above): `InitMIDI` and the `BFMidi*` functions as
+  `ASM_InitMIDI` (0x3B5B0) and the routines after it, on the core's AIL/32 layer and the game's driver.
 
 ## Building
 
@@ -78,12 +89,14 @@ deterministic package.
 
 ## Where things are
 
-- `xlat/`: the translator (`elf2c.py`), its runtime (`xlat.h`, `xlat_rt.c`: flags, x87, dispatch) and a
-  native test runner for any static i386 musl program (`xlrun.c`).
+- `xlat/`: the translator (`elf2c.py`), its runtime (`xlat.h`, `xlat_rt.c`: flags, x87, dispatch), the
+  interpreter for code the program loads at run time (`xl_interp.c`: the music driver) and a native test
+  runner for any static i386 musl program (`xlrun.c`).
 - `i386/`: the i386 build of SyndicatFX: the SDL2 shim, the host calls, the OpenAL mixer (`oal.c`), the
-  vorbisfile stubs, the C++ header shim, the config headers.
+  AIL/32 layer (`ail32.c`), the vorbisfile stubs, the C++ header shim, the config headers.
 - `waterbox/`: the machine (`sfx-machine.c`: the arena, the Linux i386 syscalls over an in-memory file
-  system, the coroutine the game runs on, the step boundary), the driver, the exports, the domains and
+  system, the coroutine the game runs on, the step boundary, the PIT and the FM chip; `opl3.c` is Nuked
+  OPL3), the driver, the exports, the domains and
   properties, the tables (`tables.py` makes `waterbox.config`, the keybinds and `sfx-tables.h`), the
   harnesses and the gate.
 - `tests/`: movies and step scripts, `sfx-run.c`, and the oracle procedure.
@@ -93,4 +106,5 @@ deterministic package.
 This repository is GPL-3.0-or-later. SyndicatFX's C sources are GPL-3.0-or-later; **its `src/syndre.sx`
 is Bullfrog's own `MAIN.EXE`, disassembled, which carries no licence** - SyndicatFX distributes it in good
 faith for owners of the game and will take it down if the copyright holders object, and a package of this
-core carries that code, translated, the same way (`waterbox/package-licenses.json`). musl libc is MIT.
+core carries that code, translated, the same way (`waterbox/package-licenses.json`). musl libc is MIT;
+Nuked OPL3 (`waterbox/opl3.c`) is LGPL-2.1-or-later.

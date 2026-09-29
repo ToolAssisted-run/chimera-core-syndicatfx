@@ -2,7 +2,7 @@
   "package": "syndicatfx",
   "effectiveTerms": "GPL-3.0-or-later for everything but the game code; the game code is Bullfrog's (see note)",
   "commercialUse": "no: the translated game code is Bullfrog's disassembled executable, which carries no licence",
-  "note": "The built core combines this repository's integration (GPL-3.0-or-later), SyndicatFX's C library layer (GPL-3.0-or-later), the parts of musl libc its i386 build links (MIT), and SyndicatFX's src/syndre.sx: the original Syndicate MAIN.EXE by Bullfrog, disassembled and modified. That code is NOT under the GPL. SyndicatFX's COPYING says it distributes it without charge, in good faith, for owners of the original game, and will take it down should the copyright holders complain; this package carries it the same way, translated to C. The package carries none of Syndicate's data files: the game's original files are the project's firmware, supplied by the user. The menu texts it embeds are SyndicatFX's own translation files (lang/*.po).",
+  "note": "The built core combines this repository's integration (GPL-3.0-or-later), SyndicatFX's C library layer (GPL-3.0-or-later), the parts of musl libc its i386 build links (MIT), Nuked OPL3 (LGPL-2.1-or-later, the Sound Blaster's FM chip), and SyndicatFX's src/syndre.sx: the original Syndicate MAIN.EXE by Bullfrog, disassembled and modified. That code is NOT under the GPL. SyndicatFX's COPYING says it distributes it without charge, in good faith, for owners of the original game, and will take it down should the copyright holders complain; this package carries it the same way, translated to C. The package carries none of Syndicate's data files: the game's original files are the project's firmware, supplied by the user - among them the game's music driver (GAMEFM.DLL), which the core loads from them and runs as it is. The menu texts it embeds are SyndicatFX's own translation files (lang/*.po).",
   "components": [
     {
       "name": "chimera-core-syndicatfx (integration, the translator, the SDL2 shim)",
@@ -27,6 +27,12 @@
       "commit": "v1.2.5",
       "file": "tools/licenses/musl-COPYRIGHT",
       "sourceUrl": "https://musl.libc.org/releases/musl-1.2.5.tar.gz"
+    },
+    {
+      "name": "Nuked OPL3 1.8 (waterbox/opl3.c, the FM chip)",
+      "license": "LGPL-2.1-or-later",
+      "url": "https://github.com/nukeykt/Nuked-OPL3",
+      "file": "waterbox/opl3.h"
     }
   ]
 }
