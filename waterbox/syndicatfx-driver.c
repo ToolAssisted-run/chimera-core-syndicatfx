@@ -18,14 +18,19 @@ static HcInput input;
 static int rendering = 1, have_video, ended;
 static uint32_t bgra[640 * 480];
 static int vid_w = 320, vid_h = 200;
-static int16_t silence[2 * 65536];
-static uint64_t audio_acc;   /* sample-time remainder, in samples*1e6 */
-static int audio_frames;
+static const int16_t *audio = (const int16_t *)bgra;   /* the last step's sound (none before a step) */
+static int audio_n;
 static char errbuf[256];
 
-int drv_init(const char *language, char *err, size_t errlen)
+/* the files the port's installer copies to its "sound" directory as well (util/install) */
+static const char *const sound_dir[] = {"INTRO.XMI", "ISNDS-0.DAT", "ISNDS-0.TAB", "ISNDS-1.DAT", "ISNDS-1.TAB", "GSOUND-0.DAT",
+    "GSOUND-0.TAB", "SOUND-0.DAT", "SOUND-0.TAB", "SOUND-1.DAT", "SOUND-1.TAB", "SAMPLE.AD", "SAMPLE.OPL", "SYNGAME.XMI"};
+#define NSOUND_DIR (int)(sizeof sound_dir / sizeof sound_dir[0])
+
+int drv_init(const char *language, int sound, char *err, size_t errlen)
 {
-    static SfxFile files[SFX_FIRMWARE_COUNT + 1];
+    static SfxFile files[SFX_FIRMWARE_COUNT + 1 + NSOUND_DIR];
+    static char sound_names[NSOUND_DIR][48];
     static char names[SFX_FIRMWARE_COUNT + 1][48];
     for (int i = 0; i < SFX_FIRMWARE_COUNT; i++) {
         const SfxFirmware *fw = &sfx_firmware[i];
@@ -49,13 +54,20 @@ int drv_init(const char *language, char *err, size_t errlen)
     if (!strcmp(arg, "1")) { lname = "language/fre/guitext.dat"; ldata = sfx_lang_fre; lsize = sfx_lang_fre_size; }
     if (!strcmp(arg, "2")) { lname = "language/ita/guitext.dat"; ldata = sfx_lang_ita; lsize = sfx_lang_ita_size; }
     files[SFX_FIRMWARE_COUNT].name = lname; files[SFX_FIRMWARE_COUNT].data = ldata; files[SFX_FIRMWARE_COUNT].size = lsize;
+    int nfiles = SFX_FIRMWARE_COUNT + 1;
+    for (int k = 0; k < NSOUND_DIR; k++)
+        for (int i = 0; i < SFX_FIRMWARE_COUNT; i++) {
+            if (strcmp(sfx_firmware[i].name, sound_dir[k])) continue;
+            snprintf(sound_names[k], sizeof sound_names[k], "sound/%s", names[i] + 5);
+            files[nfiles] = files[i]; files[nfiles++].name = sound_names[k];
+        }
     drv_readonly_done();
-    /* -s: no sound device yet (the core renders none); -S: menus at their own 320x200 */
-    static const char *argv[] = {"syndicatfx", "-c", "0", "-s", "-S"};
+    /* -S: menus at their own 320x200; -s: no sound card */
+    static const char *argv[] = {"syndicatfx", "-c", "0", "-S", "-s"};
     argv[2] = arg;
-    if (sfx_init(files, SFX_FIRMWARE_COUNT + 1, 5, argv) < 0) { snprintf(err, errlen, "%s", sfx_error()); return -1; }
+    if (sfx_init(files, nfiles, sound ? 4 : 5, argv) < 0) { snprintf(err, errlen, "%s", sfx_error()); return -1; }
     memset(&input, 0, sizeof input); memset(buttons, 0, sizeof buttons);
-    have_video = 0; ended = 0; audio_acc = 0; audio_frames = 0;
+    have_video = 0; ended = 0; audio_n = 0;
     gamestate_from_game(0);
     return 0;
 }
@@ -71,7 +83,7 @@ void drv_set_packed(uint64_t bits) { packed = bits; }
 
 void drv_step(void)
 {
-    if (ended) { audio_frames = 0; return; }
+    if (ended) { audio_n = 0; return; }
     memset(input.keys, 0, sizeof input.keys); input.buttons = 0;
     for (int i = 0; i < SFX_BUTTON_COUNT; i++) {
         if (!buttons[i] && !(i < 64 && ((packed >> i) & 1))) continue;
@@ -85,10 +97,7 @@ void drv_step(void)
     gamestate_to_game();
     int rc = sfx_step(&input);
     if (rc) { ended = rc; snprintf(errbuf, sizeof errbuf, "%s", rc < 0 ? sfx_error() : "the game ended"); }
-    /* sound: silence for exactly the step's time at 44100 Hz */
-    audio_acc += sfx_step_us() * 44100u;
-    audio_frames = (int)(audio_acc / 1000000u); audio_acc %= 1000000u;
-    if (audio_frames > 65536) audio_frames = 65536;
+    audio = sfx_audio(&audio_n);
     gamestate_from_game(ended);
     v = sfx_video();
     vid_w = v->w; vid_h = v->h;
@@ -101,7 +110,7 @@ void drv_step(void)
 }
 
 const uint32_t *drv_video(int *w, int *h) { if (w) *w = vid_w; if (h) *h = vid_h; return bgra; }   /* black until the first picture */
-const int16_t *drv_audio(int *frames) { if (frames) *frames = audio_frames; return silence; }
+const int16_t *drv_audio(int *frames) { if (frames) *frames = audio_n; return audio; }
 void drv_vsync(int *num, int *den)
 {
     uint64_t us = sfx_step_us() ? sfx_step_us() : SFX_STEP_US;

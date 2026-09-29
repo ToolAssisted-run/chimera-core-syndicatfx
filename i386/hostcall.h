@@ -9,6 +9,8 @@
 #define HC_LOG      0x5C03  /* arg1 = text, arg2 = length */
 #define HC_TICKS    0x5C04  /* returns the virtual clock in milliseconds */
 #define HC_DELAY    0x5C05  /* arg1 = milliseconds: the virtual clock does not advance (the step does); ignored */
+#define HC_AUDIO_FRAMES 0x5C06  /* the step is over: fixes its length, returns its sound frames (44100 Hz stereo) */
+#define HC_AUDIO    0x5C07  /* arg1 = the step's sound (frames x 2 int16), arg2 = frames */
 
 #define HC_KEYS 256
 typedef struct HcInput {

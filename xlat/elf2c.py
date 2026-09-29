@@ -122,7 +122,7 @@ def explore(start):
                 s = a + k
                 if s in abs_relocs:
                     tgt = abs_relocs[s]
-                    if in_exec(tgt) and i.imm_offset and s == a + i.imm_offset and i.id not in (X.X86_INS_CALL, X.X86_INS_JMP):
+                    if in_exec(tgt) and tgt not in abs_relocs and i.imm_offset and s == a + i.imm_offset and i.id not in (X.X86_INS_CALL, X.X86_INS_JMP):
                         code_ptr_sites.add(s)
                         if tgt not in entries: entries.add(tgt); work.append(tgt)
             t = imm_target(i)
@@ -147,13 +147,15 @@ def explore(start):
 pending = list(entries)
 while True:
     for e in pending: explore(e)
-    # data words that point into code and are not jump-table entries: code pointers (function tables, vtables)
+    # data words that point into code and are not jump-table entries: code pointers (function tables, vtables).
+    # An address that is itself a relocated word is data (a table in the code section: no instruction starts
+    # with an address), whatever points at it.
     new = []
     covered = set()
     for a, i in insns.items():
         covered.update(range(a, a + i.size))
     for s, tgt in abs_relocs.items():
-        if s in jt_sites or s in covered or not in_exec(tgt): continue
+        if s in jt_sites or s in covered or not in_exec(tgt) or tgt in abs_relocs: continue
         if tgt not in entries: entries.add(tgt); new.append(tgt)
     if not new: break
     pending = new

@@ -1,0 +1,59 @@
+diff --git a/src/sound.c b/src/sound.c
+--- a/src/sound.c
++++ b/src/sound.c
+@@ -171,6 +171,26 @@
+     }
+ }
+ 
++#if !defined(WITH_AIL2)
++/* The original's card driver (AIL 2) plays one digitized sample at a time: AIL_play_VOC_file replaces
++ * whatever plays, and BFSonundUnkn1's priority is forgotten only when the card is done (DAC_DONE). */
++static TbSampleHandle dac_sample;
++
++static void dac_play(ubyte smp_id, void *data)
++{
++    struct SampleInfo *p_smpinf;
++
++    StopAllSamples();
++    p_smpinf = PlaySampleFromAddress(0, smp_id, FULL_VOL, EQUL_PAN, NORM_PTCH, 0, 1, data);
++    dac_sample = (p_smpinf != NULL) ? p_smpinf->SampleHandle : NULL;
++}
++
++static TbBool dac_done(void)
++{
++    return dac_sample == NULL || AIL_sample_status(dac_sample) == SNDSMP_DONE;
++}
++#endif
++
+ void BFPlaySample(ubyte smp_id)
+ {
+     struct BFSample *p_smp;
+@@ -189,8 +209,7 @@
+     AIL_play_VOC_file(DIGhdriver, p_smp->data_start);
+     AIL_start_digital_playback(DIGhdriver);
+ #else
+-    PlaySampleFromAddress(0, smp_id, FULL_VOL, EQUL_PAN, NORM_PTCH,
+-      0, 1, p_smp->data_start);
++    dac_play(smp_id, p_smp->data_start);
+ #endif
+ }
+ 
+@@ -212,7 +231,8 @@
+     if (AIL_VOC_playback_status(DIGhdriver) == 3) // 3=DAC_DONE
+         byte_5BBE8 = 0;
+ #else
+-    byte_5BBE8 = 0; // No need to prioritize a single sample, we now have a mixer
++    if (dac_done())
++        byte_5BBE8 = 0;
+ #endif
+ 
+     for (smp_id = 1; smp_id < 256; smp_id++)
+@@ -252,7 +272,7 @@
+         AIL_play_VOC_file(DIGhdriver, p_smp->data_start);
+         AIL_start_digital_playback(DIGhdriver);
+ #else
+-        PlaySampleFromAddress(0, sel_smp_id, 127, 64, 100, 0, 1, p_smp->data_start);
++        dac_play(sel_smp_id, p_smp->data_start);
+ #endif
+         p_status->field_0 = 0;
+     }

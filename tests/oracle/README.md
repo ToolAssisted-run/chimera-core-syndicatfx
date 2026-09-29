@@ -23,6 +23,8 @@ objects, weapons, effects, commands and objectives), at the head of the game loo
 | No input after entering (`tests/scripts/idle-m1.script`) | 3,851 (3 in-game day rollovers) | identical |
 | Select all, arm pistols, assault the base (`tests/scripts/combat-m1.script`) | 2,120 (a firefight, 3,680 random draws) | identical |
 
+Both runs match with the Sound Blaster (`sfx-run --sound`, the core's default) and without a card alike.
+
 The menus before a mission advance the game's clock once per pass of the briefing and team-selection
 screens (`process_day`), so a run matches the oracle only with the same number of passes there:
 50 on the world map, 34 in the briefing, 27 in team selection for the oracle scripts. A build translated

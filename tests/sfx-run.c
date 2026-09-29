@@ -2,6 +2,9 @@
  * level-block dumps per game turn (the format of the oracle comparisons: "TURN", turn, step, len, block).
  *
  * usage: sfx-run --data CD_DATA_DIR --lang GUITEXT.DAT [--script FILE] [--steps N] [--turns FILE] [--quiet]
+ *                [--sound] [--steplog] [--wav FILE]   (--sound: the Sound Blaster, as the core's default;
+ *                --steplog: each step's length; --wav: the sound, 44100 Hz stereo)
+ *
  * script lines: key STEP SCANCODE 0|1 | mouse STEP X Y | button STEP left|right|middle 0|1 | shot STEP FILE.ppm | end STEP */
 #include "../waterbox/sfx-machine.h"
 #include "xlat.h"
@@ -56,7 +59,7 @@ typedef struct { long step; int kind, a, b; char path[256]; } Ev;
 
 int main(int argc, char **argv)
 {
-    const char *data = NULL, *lang = NULL, *script = NULL, *turns = NULL; long steps = 1000;
+    const char *data = NULL, *lang = NULL, *script = NULL, *turns = NULL, *wav = NULL; long steps = 1000; int sound = 0, steplog = 0;
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--data")) data = argv[++i];
         else if (!strcmp(argv[i], "--lang")) lang = argv[++i];
@@ -64,6 +67,9 @@ int main(int argc, char **argv)
         else if (!strcmp(argv[i], "--steps")) steps = atol(argv[++i]);
         else if (!strcmp(argv[i], "--turns")) turns = argv[++i];
         else if (!strcmp(argv[i], "--quiet")) quiet = 1;
+        else if (!strcmp(argv[i], "--sound")) sound = 1;
+        else if (!strcmp(argv[i], "--steplog")) steplog = 1;
+        else if (!strcmp(argv[i], "--wav")) wav = argv[++i];
         else if (!strcmp(argv[i], "--pday")) xl_hook = pday_hook;
         else if (!strcmp(argv[i], "--calls")) { xl_hook = calls_hook; calls_from = atol(argv[++i]); calls_to = atol(argv[++i]); }
     }
@@ -76,6 +82,11 @@ int main(int argc, char **argv)
         snprintf(nm, sizeof nm, "data/%s", e->d_name); for (char *c = nm; *c; c++) *c = (char)tolower(*c);
         uint32_t n; uint8_t *b = slurp(p, &n); if (!b) continue;
         files[nf].name = strdup(nm); files[nf].data = b; files[nf].size = n; nf++;
+        /* the port's installer copies the sound files to "sound/" too (util/install) */
+        static const char *const snd[] = {"intro.xmi", "isnds-0.dat", "isnds-0.tab", "isnds-1.dat", "isnds-1.tab", "gsound-0.dat",
+            "gsound-0.tab", "sound-0.dat", "sound-0.tab", "sound-1.dat", "sound-1.tab", "sample.ad", "sample.opl", "syngame.xmi"};
+        for (unsigned k = 0; k < sizeof snd / sizeof snd[0]; k++)
+            if (!strcmp(nm + 5, snd[k])) { files[nf] = files[nf - 1]; snprintf(p, sizeof p, "sound/%s", snd[k]); files[nf++].name = strdup(p); }
     }
     if (d) closedir(d);
     { uint32_t n; uint8_t *b = slurp(lang, &n); if (!b) { fprintf(stderr, "cannot read %s\n", lang); return 2; }
@@ -99,9 +110,11 @@ int main(int argc, char **argv)
     }
     if (turns) turnlog = fopen(turns, "wb");
     sfx_on_turn = on_turn; sfx_on_log = on_log;
-    const char *pargv[] = {"syndicatfx", "-c", "0", "-s", "-S"};
-    if (sfx_init(files, nf, 5, pargv) < 0) { fprintf(stderr, "init: %s\n", sfx_error()); return 1; }
+    const char *pargv[] = {"syndicatfx", "-c", "0", "-S", "-s"};
+    if (sfx_init(files, nf, sound ? 4 : 5, pargv) < 0) { fprintf(stderr, "init: %s\n", sfx_error()); return 1; }
     HcInput in; memset(&in, 0, sizeof in);
+    FILE *wf = wav ? fopen(wav, "wb") : NULL; uint32_t wav_frames = 0;
+    if (wf) fwrite((uint8_t[44]){0}, 1, 44, wf);
     clock_t t0 = clock(); int rc = 0;
     for (cur_step = 0; (long)cur_step < steps; cur_step++) {
         for (int k = 0; k < ne; k++) {
@@ -111,6 +124,9 @@ int main(int argc, char **argv)
             else if (v->kind == 2) { if (v->b) in.buttons |= 1 << v->a; else in.buttons &= ~(1 << v->a); }
         }
         rc = sfx_step(&in);
+        if (wf) { int n; const int16_t *a = sfx_audio(&n); fwrite(a, 4, (size_t)n, wf); wav_frames += (uint32_t)n; }
+        if (steplog) fprintf(stderr, "step %llu us %llu turns %llu instr %llu\n", (unsigned long long)cur_step, (unsigned long long)sfx_step_us(),
+                             (unsigned long long)sfx_turns(), (unsigned long long)sfx_cycles());
         for (int k = 0; k < ne; k++) if (evs[k].step == (long)cur_step && evs[k].kind == 3) shot(evs[k].path);
         if (rc) break;
     }
@@ -119,6 +135,10 @@ int main(int argc, char **argv)
             rc < 0 ? sfx_error() : rc > 0 ? "program ended" : "ok", (unsigned long long)sfx_steps(), (unsigned long long)sfx_turns(),
             (unsigned long long)sfx_cycles(), secs, secs > 0 ? sfx_steps() / secs : 0.0);
     if (turnlog) fclose(turnlog);
+    if (wf) {
+        uint32_t data_len = wav_frames * 4, h[11] = {0x46464952, 36 + data_len, 0x45564157, 0x20746d66, 16, 0x00020001, 44100, 44100 * 4, 0x00100004, 0x61746164, data_len};
+        fseek(wf, 0, SEEK_SET); fwrite(h, 4, 11, wf); fclose(wf);
+    }
     if (xl_hook && pd_n) fprintf(stderr, "pday ret=%08x count=%ld (last)\n", pd_last, pd_n);
     return rc < 0 ? 1 : 0;
 }

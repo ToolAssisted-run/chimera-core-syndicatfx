@@ -34,10 +34,14 @@ BUTTONS += [
 AXES = [("Mouse Position X", 0, 65535, 32768, "WMouse X"), ("Mouse Position Y", 0, 65535, 32768, "WMouse Y")]
 
 SETTINGS = [
-    {"name": "language", "display": "Language", "type": "enum", "default": "English", "sync": True,
-     "values": ["English", "French", "Italian"],
+    {"name": "language", "display": "Language", "type": "enum", "default": "English",
+     "options": ["English", "French", "Italian"],
      "description": "The game's language (the original '-c' option): menus from SyndicatFX's translations, mission "
                     "briefings from the CD's own sets. Changes play (texts, layout), so a movie records it."},
+    {"name": "sound", "display": "Sound", "type": "enum", "default": "Sound Blaster",
+     "options": ["Sound Blaster", "None"],
+     "description": "The sound card the setup chose: the Sound Blaster (the only card the game supports; its "
+                    "digitized sounds, one at a time as on the card) or none (the original '-s' option)."},
 ]
 LANG_ARG = {"English": "0", "French": "1", "Italian": "2"}
 
@@ -82,7 +86,9 @@ def main():
         "video": {"_comment": "buffer capacity; the live size (320x200 menus, 640x480 missions) comes from GetVideoWidth/Height",
                   "width": 640, "height": 480, "virtualWidth": 640, "virtualHeight": 480,
                   "vsyncNumerator": 16, "vsyncDenominator": 1, "getBgra": "GetVideoBgra"},
-        "audio": {"rate": 44100, "samplesPerFrame": 65536, "channels": 2, "get": "GetAudio"},
+        "audio": {"_comment": "The Sound Blaster's digitized sounds (or none, with no card), rendered at 44100 Hz for exactly "
+                            "the time each step covers, the card's mono on both sides.",
+                  "rate": 44100, "samplesPerFrame": 65536, "channels": 2, "get": "GetAudio"},
         "lag": {"inputWasRead": "InputWasRead"},
         "input": {"name": "Syndicate Controller",
                   "_comment": "index order is the wire order (waterbox/tables.py); mouse position is 0..65535 over the live picture",

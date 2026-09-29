@@ -28,10 +28,11 @@ ECL_EXPORT const char *GetLoadError(void) { return load_error; }
 
 ECL_EXPORT int Init(void)
 {
-    char lang[32] = "English";
+    char lang[32] = "English", sound[32] = "Sound Blaster";
     load_error[0] = 0;
     wbx_setting_str("language", lang, sizeof lang);
-    if (drv_init(lang, load_error, sizeof load_error) < 0) return 0;
+    wbx_setting_str("sound", sound, sizeof sound);
+    if (drv_init(lang, strcmp(sound, "None") != 0, load_error, sizeof load_error) < 0) return 0;
     inited = 1;
     return 1;
 }

@@ -10,6 +10,7 @@
 typedef struct SfxFile { const char *name; const uint8_t *data; uint32_t size; } SfxFile;  /* "data/game01.dat" */
 
 #define SFX_STEP_US 62500u          /* one step = 1/16 s: the port's pacing (game_update, 16 fps) */
+#define SFX_AUDIO_MAX 65536         /* sound frames a step can have */
 
 int  sfx_init(const SfxFile *files, int nfiles, int argc, const char *const *argv);
 int  sfx_step(const HcInput *in);   /* runs to the next input read: 0 ok, 1 program ended, -1 fatal */
@@ -20,6 +21,7 @@ const SfxVideo *sfx_video(void);    /* the last presented picture */
 int  sfx_input_was_read(void);      /* the step ended at an input read (always, unless the program ended) */
 uint64_t sfx_steps(void);
 uint64_t sfx_step_us(void);         /* the virtual length of the step just run: >= SFX_STEP_US */
+const int16_t *sfx_audio(int *frames);   /* its sound: 44100 Hz stereo, exactly the step's time (silence without) */
 uint64_t sfx_turns(void);           /* game loop turns so far */
 uint64_t sfx_cycles(void);          /* translated instructions executed */
 uint8_t *sfx_arena(void);           /* the 32-bit guest address space */

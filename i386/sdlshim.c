@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "hostcall.h"
+#include "oal.h"
 
 typedef struct ShimSurf {
     SDL_Surface s;
@@ -207,6 +208,10 @@ static SDL_Keymod mods(const unsigned char *k)
 static void step_input(void)
 {
     SDL_Event e;
+    /* the step's sound: the mix of the time the step took, played in the game's own time */
+    static short sound[2 * OAL_MAX_FRAMES];
+    int frames = (int)hc_call(HC_AUDIO_FRAMES, 0, 0, 0, 0, 0);
+    if (frames > 0 && oal_active()) { oal_render(sound, frames); hc_call(HC_AUDIO, (long)sound, frames, 0, 0, 0); }
     hc_call(HC_STEP, (long)&hc_in, 0, 0, 0, 0);
     for (int sc = 0; sc < HC_KEYS; sc++) {
         if (hc_in.keys[sc] == hc_prev.keys[sc]) continue;

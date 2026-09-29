@@ -7,6 +7,7 @@
 #   - refuse a project without the game's files, naming one, and a damaged file, with both hashes
 #   - export a property table that holds to chimera's docs/game-cores.md, obey a poke and hold a freeze
 #   - ask for the game's stack as a stack (MAP_STACK)
+#   - make the Sound Blaster's sound (the default), and none without a card, playing the same game
 #   - package deterministically
 # Every comparison is shown to have teeth: a run with other input must differ.
 #
@@ -166,6 +167,25 @@ if diff -q <(turboDigests < "$work/box.txt") <(turboDigests < "$work/turbo.txt")
 	report "turbo" PASS "half the run undrawn: the same machine, the same pictures after"
 else
 	report "turbo" FAIL "see build/gate/turbo.txt"
+fi
+# the sound: the Sound Blaster's (the default) is heard; without a card there is none, and the game is the same
+boxed "$wd" --frames $frames --movie "$movie" --audio "$work/sound.raw" > /dev/null 2>&1
+wq="$(workdir quiet '{"language":"English","sound":"None"}' 1)"
+native "$wq" --frames $frames --movie "$movie" --audio "$work/quiet.raw" > "$work/quiet.txt" 2>&1
+game() { grep -E '^(frames|videoHash|domain\[Game State\]|domain\[Level\])'; }
+heard() {
+	python3 - "$1" <<'PY'
+import array, sys
+a = array.array('h', open(sys.argv[1], 'rb').read())
+w = 2 * 2756   # 1/16 s of 44100 Hz stereo
+print(sum(1 for i in range(0, len(a), w) if any(a[i:i + w])))
+PY
+}
+loud="$(heard "$work/sound.raw" 2>/dev/null)"; quiet="$(heard "$work/quiet.raw" 2>/dev/null)"
+if [ "${loud:-0}" -ge 16 ] && [ "$quiet" = 0 ] && diff -q <(game < "$work/box.txt") <(game < "$work/quiet.txt") > /dev/null; then
+	report "sound" PASS "$loud of $frames steps heard; with no card none, and the same game"
+else
+	report "sound" FAIL "heard ${loud:-?} steps, ${quiet:-?} without a card; see build/gate/quiet.txt"
 fi
 
 # ------------------------------------------------------------------ 6. the properties

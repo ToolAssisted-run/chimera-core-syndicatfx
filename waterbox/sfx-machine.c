@@ -35,6 +35,23 @@ static uint64_t now_us(void)
     return clock_us + (by_instr > by_reads ? by_instr : by_reads);
 }
 static uint64_t clock_read(void) { step_reads++; return now_us(); }
+
+/* A step's length is its virtual time, at least SFX_STEP_US; it is fixed when the program asks for the
+ * step's sound (HC_AUDIO_FRAMES, just before the step ends) or else when the step ends. Its sound is
+ * that many frames at 44100 Hz (the remainder carried), which the program mixes and hands over. */
+static int step_fixed, audio_frames, audio_given;
+static uint64_t audio_acc;   /* sample-time remainder, in samples*1e6 */
+static int16_t audio_out[2 * SFX_AUDIO_MAX];
+static void fix_step(void)
+{
+    if (step_fixed) return;
+    uint64_t el = now_us() - clock_us;
+    last_step_us = el > SFX_STEP_US ? el : SFX_STEP_US;
+    audio_acc += last_step_us * 44100u;
+    audio_frames = (int)(audio_acc / 1000000u); audio_acc %= 1000000u;
+    if (audio_frames > SFX_AUDIO_MAX) audio_frames = SFX_AUDIO_MAX;
+    step_fixed = 1;
+}
 static uint32_t brk_start, brk_cur, level_addr, level_len;
 static uint8_t mmap_used[(MMAP_TOP - MMAP_BASE) / PAGE];
 static int prog_argc; static const char *const *prog_argv;
@@ -108,6 +125,7 @@ static uint32_t fsize(int k) { return files[k].size; }
 /* ---------------------------------------------------------------- guest memory helpers */
 static char *gstr(uint32_t a) { return (char *)xl_mem + (a & XL_MASK); }
 static void gcopy_out(uint32_t a, const void *src, uint32_t n) { for (uint32_t i = 0; i < n; i++) wr8(a + i, ((const uint8_t *)src)[i]); }
+static void gcopy_in(void *dst, uint32_t a, uint32_t n) { for (uint32_t i = 0; i < n; i++) ((uint8_t *)dst)[i] = (uint8_t)rd8(a + i); }
 
 static void log_text(const char *s, uint32_t n) { if (sfx_on_log) sfx_on_log(s, n); }
 
@@ -251,6 +269,11 @@ void xl_host_syscall(void)
     case HC_LOG: log_text(gstr(a1), a2); r = 0; break;
     case HC_TICKS: r = (int32_t)(clock_read() / 1000); break;
     case HC_DELAY: r = 0; break;
+    case HC_AUDIO_FRAMES: fix_step(); r = audio_frames; break;
+    case HC_AUDIO:
+        if (step_fixed && (int32_t)a2 > 0 && (int32_t)a2 <= audio_frames) { gcopy_in(audio_out, a1, a2 * 4u); audio_given = (int)a2; r = 0; }
+        else r = -22;
+        break;
     /* ---- Linux i386 */
     case 1: case 252: state = ST_ENDED; for (;;) coro_yield(&prog);
     case 3: r = sys_read(a1, a2, a3); break;
@@ -334,7 +357,7 @@ int sfx_init(const SfxFile *mount, int nfiles, int argc, const char *const *argv
 {
     memset(files, 0, sizeof files); memset(fds, 0, sizeof fds); memset(mmap_used, 0, sizeof mmap_used);
     memset(&xl, 0, sizeof xl); memset(xl_tls_base, 0, sizeof(uint32_t) * 8);
-    steps = turns = clock_us = step_icount0 = last_step_us = step_reads = 0; level_addr = level_len = 0; errmsg[0] = 0;
+    steps = turns = clock_us = step_icount0 = last_step_us = step_reads = 0; audio_acc = 0; audio_frames = audio_given = step_fixed = 0; level_addr = level_len = 0; errmsg[0] = 0;
     for (int k = 0; k < nfiles; k++) {
         char norm[128]; normalize(mount[k].name, norm, sizeof norm);
         int f = vnew(norm, 0); if (f < 0) { snprintf(errmsg, sizeof errmsg, "too many files"); return -1; }
@@ -380,9 +403,10 @@ int sfx_step(const HcInput *in)
 {
     if (state == ST_ENDED) return 1;
     if (state == ST_FATAL) return -1;
-    cur_in = in; state = ST_RUNNING; input_read = 0;
+    cur_in = in; state = ST_RUNNING; input_read = 0; step_fixed = 0; audio_given = 0;
     coro_resume(&prog);
-    { uint64_t el = now_us() - clock_us; last_step_us = el > SFX_STEP_US ? el : SFX_STEP_US; }
+    fix_step();
+    if (audio_given < audio_frames) memset(audio_out + 2 * audio_given, 0, (size_t)(audio_frames - audio_given) * 4u);
     steps++; clock_us += last_step_us; step_icount0 = xl.icount; step_reads = 0;
     if (prog.done && state == ST_RUNNING) state = ST_ENDED;
     return state == ST_FATAL ? -1 : state == ST_ENDED ? 1 : 0;
@@ -393,6 +417,7 @@ const SfxVideo *sfx_video(void) { return &video; }
 int sfx_input_was_read(void) { return input_read; }
 uint64_t sfx_steps(void) { return steps; }
 uint64_t sfx_step_us(void) { return last_step_us; }
+const int16_t *sfx_audio(int *frames) { if (frames) *frames = audio_frames; return audio_out; }
 uint64_t sfx_turns(void) { return turns; }
 uint64_t sfx_cycles(void) { return xl.icount; }
 uint8_t *sfx_arena(void) { return xl_mem; }

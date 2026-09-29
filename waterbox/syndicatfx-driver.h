@@ -12,7 +12,7 @@ void *drv_file_open(const char *name, size_t *size);   /* returns malloc'd bytes
 void *drv_alloc_readonly(size_t size);
 void  drv_readonly_done(void);                           /* all read-only data is written */
 
-int  drv_init(const char *language, char *err, size_t errlen);
+int  drv_init(const char *language, int sound, char *err, size_t errlen);
 void drv_set_button(int index, int level);
 void drv_set_axis(int index, int32_t value);
 void drv_set_packed(uint64_t bits);                     /* FrameAdvance's packed buttons, this step only */
