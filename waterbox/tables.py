@@ -62,6 +62,67 @@ def firmware_names():
     names |= {"MSPR-0.DAT", "MSPR-0.TAB"}
     return sorted(names)
 
+# ---- what the controls and the system are called ----
+# The frontend keeps no table of these: a core says what its own are called.
+# MNEMONICS is the letter each button writes into a movie's text and heads its
+# input column with, by the button's name - whole, or without its player ("P2
+# Up" is found under "Up"), so one line serves every pad. AXIS_HEADERS is the
+# short header of each axis's column. (An entry is read by position: a letter
+# may change and no movie made before it is harmed.)
+MNEMONICS = {
+    "Mouse Left Button": "L", "Mouse Right Button": "R", "Key 1": "1", "Key 2": "2", "Key 3": "3",
+    "Key 4": "4", "Key 5": "5", "Key 6": "6", "Key 7": "7", "Key 8": "8", "Key 9": "9",
+    "Key 0": "0", "Key A": "a", "Key B": "b", "Key C": "c", "Key D": "d", "Key E": "e",
+    "Key F": "f", "Key G": "g", "Key H": "h", "Key I": "i", "Key J": "j", "Key K": "k",
+    "Key L": "l", "Key M": "m", "Key N": "n", "Key O": "o", "Key P": "p", "Key Q": "q",
+    "Key R": "r", "Key S": "s", "Key T": "t", "Key U": "u", "Key V": "v", "Key W": "w",
+    "Key X": "x", "Key Y": "y", "Key Z": "z", "Key F1": "@", "Key F2": "#", "Key F3": "$",
+    "Key F4": "%", "Key F5": "^", "Key F6": "&", "Key F7": "*", "Key F8": "(", "Key F9": ")",
+    "Key F10": "{", "Key F11": "}", "Key F12": "F", "Key Escape": "X", "Key Enter": "N",
+    "Key Space": "_", "Key Backspace": "B", "Key Tab": "T", "Key Up": "U", "Key Down": "D",
+    "Key Left": "<", "Key Right": ">", "Key LeftShift": "S", "Key RightShift": "Z",
+    "Key LeftCtrl": "C", "Key RightCtrl": "V", "Key LeftAlt": "A", "Key RightAlt": "G",
+    "Key Minus": "-", "Key Equals": "=", "Key Period": "P", "Key Comma": ",", "Key Slash": "/",
+    "Key Semicolon": ";", "Key Quote": "'", "Key Home": "H", "Key End": "E", "Key Pageup": "[",
+    "Key Pagedown": "]", "Key Insert": "I", "Key Delete": "Y", "Key Pause": "P",
+    "Key KeyPadPlus": "+", "Key KeyPadMinus": "~",
+}
+AXIS_HEADERS = {
+    "Mouse Position X": "MPX", "Mouse Position Y": "MPY",
+}
+SYSTEM_NAMES = {
+    "Syndicate": "Syndicate",
+}
+
+
+def _bare(name):
+    """A control's name without its player: "P2 Up" -> "Up"."""
+    head, _, rest = name.partition(" ")
+    return rest if rest and head[:1] == "P" and head[1:].isdigit() else name
+
+
+def mnemonics_for(buttons):
+    """The "mnemonics" of an input declaration: a letter for every one of its
+    buttons, and for nothing else. A button nobody gave a letter stops the
+    build - the engine would give it its rule's guess, and two columns of one
+    pad would share a letter with nobody having decided it."""
+    out = {}
+    for b in buttons:
+        key = b if b in MNEMONICS else _bare(b)
+        if key not in MNEMONICS:
+            raise SystemExit("no mnemonic for the button %r (MNEMONICS in %s)" % (b, __file__))
+        out[key] = MNEMONICS[key]
+    return out
+
+
+def with_headers(axes):
+    """The axes with their column headers; an axis nobody named stops the build."""
+    missing = [a["name"] for a in axes if a["name"] not in AXIS_HEADERS]
+    if missing:
+        raise SystemExit("no header for the axes %s (AXIS_HEADERS in %s)" % (missing, __file__))
+    return [dict(a, header=AXIS_HEADERS[a["name"]]) for a in axes]
+
+
 def main():
     data = None
     if "--data" in sys.argv: data = sys.argv[sys.argv.index("--data") + 1]
@@ -85,6 +146,7 @@ def main():
         "coreName": "SyndicatFX",
         "kind": "game",
         "systemId": "Syndicate",
+        "systemNames": SYSTEM_NAMES,
         "author": "Bullfrog (1993); SyndicatFX by Mefistotelis, Unavowed, Gynvael Coldwind and fans; chimera port by Sergio Martin",
         "url": "https://github.com/ToolAssisted-run/chimera-core-syndicatfx",
         "deterministic": True,
@@ -100,7 +162,8 @@ def main():
         "input": {"name": "Syndicate Controller",
                   "_comment": "index order is the wire order (waterbox/tables.py); mouse position is 0..65535 over the live picture",
                   "buttons": [b[0] for b in BUTTONS],
-                  "axes": [{"name": a[0], "min": a[1], "max": a[2], "neutral": a[3]} for a in AXES]},
+                  "mnemonics": mnemonics_for([b[0] for b in BUTTONS]),
+                  "axes": with_headers([{"name": a[0], "min": a[1], "max": a[2], "neutral": a[3]} for a in AXES])},
         "settings": SETTINGS,
         "firmware": fw,
     }
