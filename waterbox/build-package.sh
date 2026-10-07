@@ -35,7 +35,9 @@ fi
 mb="$(cd "$mb" && pwd)"
 [ -n "$out" ] || out="$root/build/package"
 
-# the guest (guest.mk runs check-wbx before it calls core.wbx built)
+# the guest (guest.mk runs check-wbx before it calls core.wbx built); the log
+# goes into build/, which a fresh clone does not have yet
+mkdir -p "$root/build"
 make -C "$here" -f guest.mk MB="$mb" -j"$(nproc)" > "$root/build/package-make.log" 2>&1 || {
 	tail -20 "$root/build/package-make.log" >&2; echo "the guest build failed (build/package-make.log)" >&2; exit 1; }
 sh "$mb/source/guest/check-wbx.sh" "$root/build/guest/core.wbx"

@@ -66,6 +66,14 @@ pointers staying 32-bit. Nothing of the game is reimplemented by hand.
 - `patches/0004`: the music as the original plays it (above): `InitMIDI` and the `BFMidi*` functions as
   `ASM_InitMIDI` (0x3B5B0) and the routines after it, on the core's AIL/32 layer and the game's driver.
 
+## Using it in Chimera
+
+Chimera ships no cores and downloads nothing. Download the core's `.chimeraCore` package from this
+repository's [Releases](https://github.com/ToolAssisted-run/chimera-core-syndicatfx/releases) page (a rolling
+`dev` build, dated `nightly-YYYY-MM-DD` builds), or build it, and put it in the `Cores` folder beside
+`Chimera.exe` (or the folder chosen in File > Core Manager > Change folder...). The same file works on Linux
+and on Windows. The game's own files are not in the package: a project brings them as firmware (above).
+
 ## Building
 
 ```
@@ -80,6 +88,11 @@ The first build also sets up the rootless i386 toolchain (`tools/setup-i386-tool
 libgcc and a static musl, no root and no multilib install needed), builds SyndicatFX for i386 (`i386/`) and
 translates it (`tools/translate.sh`, about 390 thousand lines of C). miniBox is taken from `MB=`/
 `MINIBOX_DIR`, else `~/chimera/extern/chimera-common-minibox`, with its guest toolchain built.
+`./waterbox/build-package.sh -r <chimera>` writes the package into a Chimera source checkout's `build/Cores`
+instead.
+
+The whole build, as CI does it, is in [docs/BUILDING.md](docs/BUILDING.md); [AGENTS.md](AGENTS.md) is the
+guide for an AI coding agent.
 
 ## The gate
 
