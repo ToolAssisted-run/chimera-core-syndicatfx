@@ -36,14 +36,19 @@ AXES = [("Mouse Position X", 0, 65535, 32768, "WMouse X"), ("Mouse Position Y", 
 SETTINGS = [
     {"name": "language", "display": "Language", "type": "enum", "default": "English",
      "options": ["English", "French", "Italian"],
-     "description": "The game's language (the original '-c' option): menus from SyndicatFX's translations, mission "
-                    "briefings from the CD's own sets. Changes play (texts, layout), so a movie records it."},
+     "description": "The game's language (the original '-c' option). The menus come "
+         "from SyndicatFX's translations, and the mission briefings from the"
+         " CD's own sets. It changes the game (its texts and layout), so a "
+         "movie records it."},
     {"name": "sound", "display": "Sound", "type": "enum", "default": "Sound Blaster",
      "options": ["Sound Blaster", "None"],
-     "description": "The sound card the setup chose: the Sound Blaster (the default, the only card the game supports: "
-                    "its digitized sounds, one at a time as on the card, and the music on its FM chip by the game's own "
-                    "driver) or none (the original '-s' option). The game waits for its song to end before a won or "
-                    "lost mission ends, so the card changes play: a movie records it."},
+     "description": "The sound card chosen in the game's setup. 'Sound Blaster' is the "
+         "default and the only card the game supports. Its digitized sounds "
+         "play one at a time, as on the card, and the music plays on its FM "
+         "chip through the game's own driver. 'None' is no card (the "
+         "original '-s' option). The game waits for its song to end before a"
+         " won or lost mission ends, so the choice changes the game, and a "
+         "movie records it."},
 ]
 LANG_ARG = {"English": "0", "French": "1", "Italian": "2"}
 
@@ -123,6 +128,11 @@ def with_headers(axes):
     return [dict(a, header=AXIS_HEADERS[a["name"]]) for a in axes]
 
 
+# what every game file's description ends with
+TAIL = (". You have to supply it. The package contains none of the game's data. A modified file of your own can be "
+        "used instead, and the project records exactly which file it was.")
+
+
 def main():
     data = None
     if "--data" in sys.argv: data = sys.argv[sys.argv.index("--data") + 1]
@@ -134,14 +144,11 @@ def main():
         for n in firmware_names():
             b = open(os.path.join(data, have[n]), "rb").read()
             fw.append({"id": n, "display": n, "name": n, "size": len(b), "sha1": hashlib.sha1(b).hexdigest().upper(),
-                       "description": "Syndicate Plus CD (EA/Bullfrog 1994): SYNDICAT\\DATA\\" + n + ". Yours to supply - the "
-                                      "package carries none of the game's data. A file of your own (a modified one) may take "
-                                      "its place: the project pins its hash."})
+                       "description": "Syndicate Plus CD (EA/Bullfrog 1994): SYNDICAT\\DATA\\" + n + TAIL})
     else:
         fw = old.get("firmware", [])
         for e in fw:
-            e["description"] = e["description"].split(". ")[0] + (". Yours to supply - the package carries none of the game's data. "
-                                                                  "A file of your own (a modified one) may take its place: the project pins its hash.")
+            e["description"] = e["description"].split(". ")[0] + TAIL
     cfg = {
         "coreName": "SyndicatFX",
         "kind": "game",

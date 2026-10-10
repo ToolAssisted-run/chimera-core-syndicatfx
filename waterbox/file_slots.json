@@ -1,4 +1,4 @@
 {
-  "_comment": "A Syndicate project needs no file of its own: the game is the Syndicate Plus CD's original files (SYNDICAT\\DATA), which the project brings as firmware. The game's saves live in the machine's memory.",
+  "_comment": "A Syndicate project needs no file of its own. The game is made of the original files of the Syndicate Plus CD (SYNDICAT\\DATA), which the project supplies as firmware. The game's saves are kept in the machine's memory.",
   "slots": []
 }
