@@ -1,0 +1,502 @@
+diff --git a/bflibrary/m4/pkg.m4 b/bflibrary/m4/pkg.m4
+index d8549a4..c88ef6f 100644
+--- a/bflibrary/m4/pkg.m4
++++ b/bflibrary/m4/pkg.m4
+@@ -1,5 +1,5 @@
+-# pkg.m4 - Macros to locate and utilise pkg-config.   -*- Autoconf -*-
+-# serial 11 (pkg-config-0.29.1)
++# pkg.m4 - Macros to locate and use pkg-config.   -*- Autoconf -*-
++# serial 12 (pkg-config-0.29.2)
+ 
+ dnl Copyright © 2004 Scott James Remnant <scott@netsplit.com>.
+ dnl Copyright © 2012-2015 Dan Nicholson <dbn.lists@gmail.com>
+@@ -41,7 +41,7 @@ dnl
+ dnl See the "Since" comment for each macro you use to see what version
+ dnl of the macros you require.
+ m4_defun([PKG_PREREQ],
+-[m4_define([PKG_MACROS_VERSION], [0.29.1])
++[m4_define([PKG_MACROS_VERSION], [0.29.2])
+ m4_if(m4_version_compare(PKG_MACROS_VERSION, [$1]), -1,
+     [m4_fatal([pkg.m4 version $1 or higher is required but ]PKG_MACROS_VERSION[ found])])
+ ])dnl PKG_PREREQ
+@@ -86,7 +86,7 @@ dnl Check to see whether a particular set of modules exists. Similar to
+ dnl PKG_CHECK_MODULES(), but does not set variables or print errors.
+ dnl
+ dnl Please remember that m4 expands AC_REQUIRE([PKG_PROG_PKG_CONFIG])
+-dnl only at the first occurence in configure.ac, so if the first place
++dnl only at the first occurrence in configure.ac, so if the first place
+ dnl it's called might be skipped (such as if it is within an "if", you
+ dnl have to call PKG_CHECK_EXISTS manually
+ AC_DEFUN([PKG_CHECK_EXISTS],
+@@ -142,7 +142,7 @@ AC_ARG_VAR([$1][_CFLAGS], [C compiler flags for $1, overriding pkg-config])dnl
+ AC_ARG_VAR([$1][_LIBS], [linker flags for $1, overriding pkg-config])dnl
+ 
+ pkg_failed=no
+-AC_MSG_CHECKING([for $1])
++AC_MSG_CHECKING([for $2])
+ 
+ _PKG_CONFIG([$1][_CFLAGS], [cflags], [$2])
+ _PKG_CONFIG([$1][_LIBS], [libs], [$2])
+@@ -152,17 +152,17 @@ and $1[]_LIBS to avoid the need to call pkg-config.
+ See the pkg-config man page for more details.])
+ 
+ if test $pkg_failed = yes; then
+-   	AC_MSG_RESULT([no])
++        AC_MSG_RESULT([no])
+         _PKG_SHORT_ERRORS_SUPPORTED
+         if test $_pkg_short_errors_supported = yes; then
+-	        $1[]_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "$2" 2>&1`
+-        else 
+-	        $1[]_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "$2" 2>&1`
++                $1[]_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "$2" 2>&1`
++        else
++                $1[]_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "$2" 2>&1`
+         fi
+-	# Put the nasty error message in config.log where it belongs
+-	echo "$$1[]_PKG_ERRORS" >&AS_MESSAGE_LOG_FD
++        # Put the nasty error message in config.log where it belongs
++        echo "$$1[]_PKG_ERRORS" >&AS_MESSAGE_LOG_FD
+ 
+-	m4_default([$4], [AC_MSG_ERROR(
++        m4_default([$4], [AC_MSG_ERROR(
+ [Package requirements ($2) were not met:
+ 
+ $$1_PKG_ERRORS
+@@ -173,8 +173,8 @@ installed software in a non-standard prefix.
+ _PKG_TEXT])[]dnl
+         ])
+ elif test $pkg_failed = untried; then
+-     	AC_MSG_RESULT([no])
+-	m4_default([$4], [AC_MSG_FAILURE(
++        AC_MSG_RESULT([no])
++        m4_default([$4], [AC_MSG_FAILURE(
+ [The pkg-config script could not be found or is too old.  Make sure it
+ is in your PATH or set the PKG_CONFIG environment variable to the full
+ path to pkg-config.
+@@ -184,10 +184,10 @@ _PKG_TEXT
+ To get pkg-config, see <http://pkg-config.freedesktop.org/>.])[]dnl
+         ])
+ else
+-	$1[]_CFLAGS=$pkg_cv_[]$1[]_CFLAGS
+-	$1[]_LIBS=$pkg_cv_[]$1[]_LIBS
++        $1[]_CFLAGS=$pkg_cv_[]$1[]_CFLAGS
++        $1[]_LIBS=$pkg_cv_[]$1[]_LIBS
+         AC_MSG_RESULT([yes])
+-	$3
++        $3
+ fi[]dnl
+ ])dnl PKG_CHECK_MODULES
+ 
+diff --git a/bflibrary/m4/sdl2.m4 b/bflibrary/m4/sdl2.m4
+index 75b60f6..274753b 100644
+--- a/bflibrary/m4/sdl2.m4
++++ b/bflibrary/m4/sdl2.m4
+@@ -9,8 +9,9 @@
+ # * also look for SDL2.framework under Mac OS X
+ # * removed HP/UX 9 support.
+ # * updated for newer autoconf.
++# * (v3) use $PKG_CONFIG for pkg-config cross-compiling support
+ 
+-# serial 2
++# serial 3
+ 
+ dnl AM_PATH_SDL2([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
+ dnl Test for SDL, and define SDL_CFLAGS and SDL_LIBS
+@@ -54,7 +55,7 @@ AC_ARG_VAR(SDL2_FRAMEWORK, [Path to SDL2.framework])
+ 
+   if test "x$sdl_pc" = xyes ; then
+     no_sdl=""
+-    SDL2_CONFIG="pkg-config sdl2"
++    SDL2_CONFIG="$PKG_CONFIG sdl2"
+   else
+     as_save_PATH="$PATH"
+     if test "x$prefix" != xNONE && test "$cross_compiling" != yes; then
+diff --git a/bfsoundlib/m4/pkg.m4 b/bfsoundlib/m4/pkg.m4
+index d8549a4..c88ef6f 100644
+--- a/bfsoundlib/m4/pkg.m4
++++ b/bfsoundlib/m4/pkg.m4
+@@ -1,5 +1,5 @@
+-# pkg.m4 - Macros to locate and utilise pkg-config.   -*- Autoconf -*-
+-# serial 11 (pkg-config-0.29.1)
++# pkg.m4 - Macros to locate and use pkg-config.   -*- Autoconf -*-
++# serial 12 (pkg-config-0.29.2)
+ 
+ dnl Copyright © 2004 Scott James Remnant <scott@netsplit.com>.
+ dnl Copyright © 2012-2015 Dan Nicholson <dbn.lists@gmail.com>
+@@ -41,7 +41,7 @@ dnl
+ dnl See the "Since" comment for each macro you use to see what version
+ dnl of the macros you require.
+ m4_defun([PKG_PREREQ],
+-[m4_define([PKG_MACROS_VERSION], [0.29.1])
++[m4_define([PKG_MACROS_VERSION], [0.29.2])
+ m4_if(m4_version_compare(PKG_MACROS_VERSION, [$1]), -1,
+     [m4_fatal([pkg.m4 version $1 or higher is required but ]PKG_MACROS_VERSION[ found])])
+ ])dnl PKG_PREREQ
+@@ -86,7 +86,7 @@ dnl Check to see whether a particular set of modules exists. Similar to
+ dnl PKG_CHECK_MODULES(), but does not set variables or print errors.
+ dnl
+ dnl Please remember that m4 expands AC_REQUIRE([PKG_PROG_PKG_CONFIG])
+-dnl only at the first occurence in configure.ac, so if the first place
++dnl only at the first occurrence in configure.ac, so if the first place
+ dnl it's called might be skipped (such as if it is within an "if", you
+ dnl have to call PKG_CHECK_EXISTS manually
+ AC_DEFUN([PKG_CHECK_EXISTS],
+@@ -142,7 +142,7 @@ AC_ARG_VAR([$1][_CFLAGS], [C compiler flags for $1, overriding pkg-config])dnl
+ AC_ARG_VAR([$1][_LIBS], [linker flags for $1, overriding pkg-config])dnl
+ 
+ pkg_failed=no
+-AC_MSG_CHECKING([for $1])
++AC_MSG_CHECKING([for $2])
+ 
+ _PKG_CONFIG([$1][_CFLAGS], [cflags], [$2])
+ _PKG_CONFIG([$1][_LIBS], [libs], [$2])
+@@ -152,17 +152,17 @@ and $1[]_LIBS to avoid the need to call pkg-config.
+ See the pkg-config man page for more details.])
+ 
+ if test $pkg_failed = yes; then
+-   	AC_MSG_RESULT([no])
++        AC_MSG_RESULT([no])
+         _PKG_SHORT_ERRORS_SUPPORTED
+         if test $_pkg_short_errors_supported = yes; then
+-	        $1[]_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "$2" 2>&1`
+-        else 
+-	        $1[]_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "$2" 2>&1`
++                $1[]_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "$2" 2>&1`
++        else
++                $1[]_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "$2" 2>&1`
+         fi
+-	# Put the nasty error message in config.log where it belongs
+-	echo "$$1[]_PKG_ERRORS" >&AS_MESSAGE_LOG_FD
++        # Put the nasty error message in config.log where it belongs
++        echo "$$1[]_PKG_ERRORS" >&AS_MESSAGE_LOG_FD
+ 
+-	m4_default([$4], [AC_MSG_ERROR(
++        m4_default([$4], [AC_MSG_ERROR(
+ [Package requirements ($2) were not met:
+ 
+ $$1_PKG_ERRORS
+@@ -173,8 +173,8 @@ installed software in a non-standard prefix.
+ _PKG_TEXT])[]dnl
+         ])
+ elif test $pkg_failed = untried; then
+-     	AC_MSG_RESULT([no])
+-	m4_default([$4], [AC_MSG_FAILURE(
++        AC_MSG_RESULT([no])
++        m4_default([$4], [AC_MSG_FAILURE(
+ [The pkg-config script could not be found or is too old.  Make sure it
+ is in your PATH or set the PKG_CONFIG environment variable to the full
+ path to pkg-config.
+@@ -184,10 +184,10 @@ _PKG_TEXT
+ To get pkg-config, see <http://pkg-config.freedesktop.org/>.])[]dnl
+         ])
+ else
+-	$1[]_CFLAGS=$pkg_cv_[]$1[]_CFLAGS
+-	$1[]_LIBS=$pkg_cv_[]$1[]_LIBS
++        $1[]_CFLAGS=$pkg_cv_[]$1[]_CFLAGS
++        $1[]_LIBS=$pkg_cv_[]$1[]_LIBS
+         AC_MSG_RESULT([yes])
+-	$3
++        $3
+ fi[]dnl
+ ])dnl PKG_CHECK_MODULES
+ 
+diff --git a/m4/pkg.m4 b/m4/pkg.m4
+index d8549a4..c88ef6f 100644
+--- a/m4/pkg.m4
++++ b/m4/pkg.m4
+@@ -1,5 +1,5 @@
+-# pkg.m4 - Macros to locate and utilise pkg-config.   -*- Autoconf -*-
+-# serial 11 (pkg-config-0.29.1)
++# pkg.m4 - Macros to locate and use pkg-config.   -*- Autoconf -*-
++# serial 12 (pkg-config-0.29.2)
+ 
+ dnl Copyright © 2004 Scott James Remnant <scott@netsplit.com>.
+ dnl Copyright © 2012-2015 Dan Nicholson <dbn.lists@gmail.com>
+@@ -41,7 +41,7 @@ dnl
+ dnl See the "Since" comment for each macro you use to see what version
+ dnl of the macros you require.
+ m4_defun([PKG_PREREQ],
+-[m4_define([PKG_MACROS_VERSION], [0.29.1])
++[m4_define([PKG_MACROS_VERSION], [0.29.2])
+ m4_if(m4_version_compare(PKG_MACROS_VERSION, [$1]), -1,
+     [m4_fatal([pkg.m4 version $1 or higher is required but ]PKG_MACROS_VERSION[ found])])
+ ])dnl PKG_PREREQ
+@@ -86,7 +86,7 @@ dnl Check to see whether a particular set of modules exists. Similar to
+ dnl PKG_CHECK_MODULES(), but does not set variables or print errors.
+ dnl
+ dnl Please remember that m4 expands AC_REQUIRE([PKG_PROG_PKG_CONFIG])
+-dnl only at the first occurence in configure.ac, so if the first place
++dnl only at the first occurrence in configure.ac, so if the first place
+ dnl it's called might be skipped (such as if it is within an "if", you
+ dnl have to call PKG_CHECK_EXISTS manually
+ AC_DEFUN([PKG_CHECK_EXISTS],
+@@ -142,7 +142,7 @@ AC_ARG_VAR([$1][_CFLAGS], [C compiler flags for $1, overriding pkg-config])dnl
+ AC_ARG_VAR([$1][_LIBS], [linker flags for $1, overriding pkg-config])dnl
+ 
+ pkg_failed=no
+-AC_MSG_CHECKING([for $1])
++AC_MSG_CHECKING([for $2])
+ 
+ _PKG_CONFIG([$1][_CFLAGS], [cflags], [$2])
+ _PKG_CONFIG([$1][_LIBS], [libs], [$2])
+@@ -152,17 +152,17 @@ and $1[]_LIBS to avoid the need to call pkg-config.
+ See the pkg-config man page for more details.])
+ 
+ if test $pkg_failed = yes; then
+-   	AC_MSG_RESULT([no])
++        AC_MSG_RESULT([no])
+         _PKG_SHORT_ERRORS_SUPPORTED
+         if test $_pkg_short_errors_supported = yes; then
+-	        $1[]_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "$2" 2>&1`
+-        else 
+-	        $1[]_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "$2" 2>&1`
++                $1[]_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "$2" 2>&1`
++        else
++                $1[]_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "$2" 2>&1`
+         fi
+-	# Put the nasty error message in config.log where it belongs
+-	echo "$$1[]_PKG_ERRORS" >&AS_MESSAGE_LOG_FD
++        # Put the nasty error message in config.log where it belongs
++        echo "$$1[]_PKG_ERRORS" >&AS_MESSAGE_LOG_FD
+ 
+-	m4_default([$4], [AC_MSG_ERROR(
++        m4_default([$4], [AC_MSG_ERROR(
+ [Package requirements ($2) were not met:
+ 
+ $$1_PKG_ERRORS
+@@ -173,8 +173,8 @@ installed software in a non-standard prefix.
+ _PKG_TEXT])[]dnl
+         ])
+ elif test $pkg_failed = untried; then
+-     	AC_MSG_RESULT([no])
+-	m4_default([$4], [AC_MSG_FAILURE(
++        AC_MSG_RESULT([no])
++        m4_default([$4], [AC_MSG_FAILURE(
+ [The pkg-config script could not be found or is too old.  Make sure it
+ is in your PATH or set the PKG_CONFIG environment variable to the full
+ path to pkg-config.
+@@ -184,10 +184,10 @@ _PKG_TEXT
+ To get pkg-config, see <http://pkg-config.freedesktop.org/>.])[]dnl
+         ])
+ else
+-	$1[]_CFLAGS=$pkg_cv_[]$1[]_CFLAGS
+-	$1[]_LIBS=$pkg_cv_[]$1[]_LIBS
++        $1[]_CFLAGS=$pkg_cv_[]$1[]_CFLAGS
++        $1[]_LIBS=$pkg_cv_[]$1[]_LIBS
+         AC_MSG_RESULT([yes])
+-	$3
++        $3
+ fi[]dnl
+ ])dnl PKG_CHECK_MODULES
+ 
+diff --git a/src/config.h.in b/src/config.h.in
+index 1b8cc39..b5dfacc 100644
+--- a/src/config.h.in
++++ b/src/config.h.in
+@@ -12,7 +12,7 @@
+ /* Define to the path where the game's data resides */
+ #undef GAME_DATA_PATH
+ 
+-/* Define to 1 if you have the 'gettimeofday' function. */
++/* Define to 1 if you have the `gettimeofday' function. */
+ #undef HAVE_GETTIMEOFDAY
+ 
+ /* Define to 1 if you have the <inttypes.h> header file. */
+@@ -69,7 +69,7 @@
+ /* Define to the version of this package. */
+ #undef PACKAGE_VERSION
+ 
+-/* Define to 1 if all of the C89 standard headers exist (not just the ones
++/* Define to 1 if all of the C90 standard headers exist (not just the ones
+    required in a freestanding environment). This macro is provided for
+    backward compatibility; new code need not use it. */
+ #undef STDC_HEADERS
+@@ -92,5 +92,5 @@
+ /* Define to 1 if running on a UNIX-like system where __unix__ is missing */
+ #undef __unix__
+ 
+-/* Define to 'long int' if <sys/types.h> does not define. */
++/* Define to `long int' if <sys/types.h> does not define. */
+ #undef off_t
+diff --git a/src/game.c b/src/game.c
+index 08cbeae..c4c7b8b 100644
+--- a/src/game.c
++++ b/src/game.c
+@@ -162,6 +162,10 @@ game_transform_path(const char *file_name, char *result)
+     game_transform_path_full (file_name, result, FILENAME_MAX);
+ }
+ 
++#ifdef SFX_HARNESS
++static void harness_frame(void);
++void harness_turn(void);
++#endif
+ static void
+ game_update_full(bool wait)
+ {
+@@ -172,6 +176,10 @@ game_update_full(bool wait)
+     int32_t start_ticks;
+ 
+     display_unlock();
++#ifdef SFX_HARNESS
++    harness_frame();
++    if (getenv("SFX_FAST")) wait = false;
++#endif
+ 
+     game_handle_sdl_events();
+ 
+@@ -339,6 +347,9 @@ void syndicate(void)
+         init_state = 0;
+         while ((byte_60AFC & 1) != 0)
+         {
++#ifdef SFX_HARNESS
++            harness_turn(); /* = the original loop head 0x10214 */
++#endif
+             if (lbKeyOn[KC_F10])
+                 break;
+             if (init_state != 0) {
+@@ -392,3 +403,7 @@ void syndicate(void)
+     }
+ }
+ /******************************************************************************/
++
++#ifdef SFX_HARNESS
++#include "harness.inc"
++#endif
+diff --git a/src/harness.inc b/src/harness.inc
+new file mode 100644
+index 0000000..4289624
+--- /dev/null
++++ b/src/harness.inc
+@@ -0,0 +1,89 @@
++/* Evaluation harness (local to ~/syndec, not upstream): scripted input, screenshots and per-turn level-block
++ * dumps. Included at the end of game.c when SFX_HARNESS is defined.
++ *   SFX_SCRIPT=file   lines (F = game_update call number, from 0):
++ *       key F SDLNAME 0|1 | mouse F X Y | button F left|right 0|1 | shot F PATH.bmp | end F
++ *   SFX_TURNLOG=file  harness_turn() (called at the game loop head, 0x10214) appends a 16-byte header
++ *                     ("TURN", turn, frame, size) and the level block (level__Seed .. 0x9C632)
++ *   SFX_TURNS=N       exit after N turns
++ *   SFX_FAST=1        no frame limiter */
++#include <string.h>
++#include "bfscrsurf.h"
++struct HEv { long f; int kind, a, b; char path[256]; };
++static struct HEv h_ev[4096]; static int h_nev = -1; static long h_frame, h_turn, h_maxturns = -1, h_end = -1;
++static FILE *h_turnlog;
++static void harness_load(void)
++{
++    const char *p = getenv("SFX_SCRIPT"); char line[512];
++    h_nev = 0;
++    if (getenv("SFX_TURNS")) h_maxturns = atol(getenv("SFX_TURNS"));
++    if (getenv("SFX_TURNLOG")) h_turnlog = fopen(getenv("SFX_TURNLOG"), "wb");
++    if (!p) return;
++    FILE *f = fopen(p, "r"); if (!f) { fprintf(stderr, "harness: cannot read %s\n", p); exit(2); }
++    while (fgets(line, sizeof line, f) && h_nev < 4096) {
++        char c[32], s1[256], s2[256]; long fr; int n; struct HEv *e = &h_ev[h_nev];
++        s1[0] = s2[0] = 0;
++        n = sscanf(line, "%31s %ld %255s %255s", c, &fr, s1, s2);
++        if (n < 2 || c[0] == '#') continue;
++        e->f = fr; e->path[0] = 0;
++        if (!strcmp(c, "key")) { e->kind = 0; e->a = SDL_GetScancodeFromName(s1); e->b = atoi(s2);
++            if (e->a == SDL_SCANCODE_UNKNOWN) { fprintf(stderr, "harness: unknown key %s\n", s1); exit(2); } }
++        else if (!strcmp(c, "mouse")) { e->kind = 1; e->a = atoi(s1); e->b = atoi(s2); }
++        else if (!strcmp(c, "button")) { e->kind = 2; e->a = !strcmp(s1, "left") ? SDL_BUTTON_LEFT : SDL_BUTTON_RIGHT; e->b = atoi(s2); }
++        else if (!strcmp(c, "shot")) { e->kind = 3; snprintf(e->path, sizeof e->path, "%s", s1); }
++        else if (!strcmp(c, "end")) { h_end = fr; continue; }
++        else continue;
++        h_nev++;
++    }
++    fclose(f);
++}
++static int h_mx, h_my;
++static void harness_frame(void)
++{
++    int i;
++    if (h_nev < 0) harness_load();
++    for (i = 0; i < h_nev; i++) {
++        struct HEv *e = &h_ev[i]; SDL_Event ev;
++        if (e->f != h_frame) continue;
++        memset(&ev, 0, sizeof ev);
++        switch (e->kind) {
++        case 0:
++            ev.type = e->b ? SDL_KEYDOWN : SDL_KEYUP; ev.key.state = e->b ? SDL_PRESSED : SDL_RELEASED;
++            ev.key.keysym.scancode = e->a; ev.key.keysym.sym = SDL_GetKeyFromScancode(e->a);
++            SDL_PushEvent(&ev); break;
++        case 1:
++            ev.type = SDL_MOUSEMOTION; ev.motion.x = e->a; ev.motion.y = e->b;
++            ev.motion.xrel = e->a - h_mx; ev.motion.yrel = e->b - h_my; h_mx = e->a; h_my = e->b;
++            SDL_PushEvent(&ev); break;
++        case 2:
++            ev.type = e->b ? SDL_MOUSEBUTTONDOWN : SDL_MOUSEBUTTONUP; ev.button.button = e->a;
++            ev.button.state = e->b ? SDL_PRESSED : SDL_RELEASED; ev.button.x = h_mx; ev.button.y = h_my; ev.button.clicks = 1;
++            SDL_PushEvent(&ev); break;
++        case 3:
++            if (lbScreenSurface) SDL_SaveBMP((SDL_Surface *)lbScreenSurface, e->path);
++            break;
++        }
++    }
++    if (h_end >= 0 && h_frame >= h_end) { fprintf(stderr, "harness: end at frame %ld turn %ld\n", h_frame, h_turn); exit(0); }
++    h_frame++;
++}
++void harness_pday(uint32_t ret);
++void harness_turn(void)
++{
++    if (h_nev < 0) harness_load();
++    if (h_turn == 0) harness_pday(0);
++    if (h_turnlog) {
++        uint32_t hdr[4]; size_t len = 0x9C632 - 0x80108;
++        memcpy(hdr, "TURN", 4); hdr[1] = h_turn; hdr[2] = h_frame; hdr[3] = len;
++        fwrite(hdr, 4, 4, h_turnlog); fwrite(&level__Seed, 1, len, h_turnlog); fflush(h_turnlog);
++    }
++    h_turn++;
++    if (h_maxturns >= 0 && h_turn >= h_maxturns) { fprintf(stderr, "harness: %ld turns at frame %ld\n", h_turn, h_frame); exit(0); }
++}
++
++void harness_pday(uint32_t ret)
++{
++    static uint32_t last_ret; static long n;
++    if (h_turn > 0) return;
++    if (ret != last_ret && n) { fprintf(stderr, "pday ret=%08x count=%ld until frame %ld\n", last_ret, n, h_frame); n = 0; }
++    last_ret = ret; n++;
++}
+diff --git a/src/sound.c b/src/sound.c
+index d2f5946..6573ae6 100644
+--- a/src/sound.c
++++ b/src/sound.c
+@@ -151,6 +151,8 @@ void SetBFSampleStatus(ubyte smp_id, ubyte stat)
+     struct BFSample *p_smp;
+     struct BFSampleStatus *p_status;
+ 
++    if (smptable == NULL) /* EVAL FIX: the original (0x387e0) returns when no sample table is loaded */
++        return;
+     p_smp = &smptable[smp_id];
+     p_status = &sample_status[smp_id];
+ 
+diff --git a/src/syndre.sx b/src/syndre.sx
+index ae904cb..06ccdf6 100644
+--- a/src/syndre.sx
++++ b/src/syndre.sx
+@@ -216,6 +216,11 @@ GLOBAL_FUNC(ASM_syndicate)	/* 0x101e0 */
+ 		test   $0x1,%ah
+ 		je     jump_102e9
+ 	jump_10214:
++#if defined(SFX_HARNESS) /* evaluation harness: state dump at the game loop head */
++		pusha
++		call   harness_turn
++		popa
++#endif
+ 		cmpb   $0x0,EXPORT_SYMBOL(lbKeyOn)+0x44
+ 		jne    jump_102e9
+ 		test   %ebx,%ebx
+@@ -11452,6 +11457,13 @@ func_187a0:
+ /*----------------------------------------------------------------*/
+ GLOBAL_FUNC(process_day)	/* 0x18810 */
+ /*----------------------------------------------------------------*/
++#if defined(SFX_HARNESS)
++		pusha
++		push   0x20(%esp)
++		call   harness_pday
++		add    $0x4,%esp
++		popa
++#endif
+ 		push   %ebx
+ 		push   %esi
+ 		push   %edi

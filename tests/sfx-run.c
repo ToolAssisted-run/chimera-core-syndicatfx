@@ -2,8 +2,9 @@
  * level-block dumps per game turn (the format of the oracle comparisons: "TURN", turn, step, len, block).
  *
  * usage: sfx-run --data CD_DATA_DIR --lang GUITEXT.DAT [--script FILE] [--steps N] [--turns FILE] [--quiet]
- *                [--sound] [--steplog] [--wav FILE]   (--sound: the Sound Blaster, as the core's default;
- *                --steplog: each step's length; --wav: the sound, 44100 Hz stereo)
+ *                [--sound] [--steplog] [--wav FILE] [--fmtrace FILE]   (--sound: the Sound Blaster, as the core's
+ *                default; --steplog: each step's length; --wav: the sound, 44100 Hz stereo; --fmtrace: every FM
+ *                chip write: PIT clock, register, value, T when a timer interrupt made it)
  *
  * script lines: key STEP SCANCODE 0|1 | mouse STEP X Y | button STEP left|right|middle 0|1 | shot STEP FILE.ppm | end STEP */
 #include "../waterbox/sfx-machine.h"
@@ -23,6 +24,9 @@ static void on_turn(uint64_t t, const uint8_t *b, uint32_t len)
     fwrite(h, 4, 4, turnlog); fwrite(b, 1, len, turnlog);
 }
 static int quiet;
+static FILE *fmtrace;
+static void on_fm(uint64_t clk, uint16_t reg, uint8_t v, int irq)
+{ fprintf(fmtrace, "%llu %03x %02x%s\n", (unsigned long long)clk, reg, v, irq ? " T" : ""); }
 /* --calls A B: every hooked function entry during steps A..B, with the guest return address */
 static long calls_from, calls_to;
 static void calls_hook(uint32_t addr)
@@ -70,6 +74,7 @@ int main(int argc, char **argv)
         else if (!strcmp(argv[i], "--sound")) sound = 1;
         else if (!strcmp(argv[i], "--steplog")) steplog = 1;
         else if (!strcmp(argv[i], "--wav")) wav = argv[++i];
+        else if (!strcmp(argv[i], "--fmtrace")) { fmtrace = fopen(argv[++i], "w"); if (fmtrace) sfx_on_fm_write = on_fm; }
         else if (!strcmp(argv[i], "--pday")) xl_hook = pday_hook;
         else if (!strcmp(argv[i], "--calls")) { xl_hook = calls_hook; calls_from = atol(argv[++i]); calls_to = atol(argv[++i]); }
     }
@@ -134,7 +139,10 @@ int main(int argc, char **argv)
     fprintf(stderr, "sfx-run: %s after %llu steps, %llu turns, %llu instructions, %.2f s (%.1f steps/s)\n",
             rc < 0 ? sfx_error() : rc > 0 ? "program ended" : "ok", (unsigned long long)sfx_steps(), (unsigned long long)sfx_turns(),
             (unsigned long long)sfx_cycles(), secs, secs > 0 ? sfx_steps() / secs : 0.0);
+    { uint64_t tk, fw; uint32_t div; sfx_sound_counts(&tk, &fw, &div);
+      if (sound) fprintf(stderr, "sfx-run: sound: PIT divisor %u, %llu timer interrupts, %llu FM chip writes\n", div, (unsigned long long)tk, (unsigned long long)fw); }
     if (turnlog) fclose(turnlog);
+    if (fmtrace) fclose(fmtrace);
     if (wf) {
         uint32_t data_len = wav_frames * 4, h[11] = {0x46464952, 36 + data_len, 0x45564157, 0x20746d66, 16, 0x00020001, 44100, 44100 * 4, 0x00100004, 0x61746164, data_len};
         fseek(wf, 0, SEEK_SET); fwrite(h, 4, 11, wf); fclose(wf);

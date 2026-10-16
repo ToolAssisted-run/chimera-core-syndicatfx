@@ -10,6 +10,7 @@
 #include <string.h>
 #include "hostcall.h"
 #include "oal.h"
+#include "ail32.h"
 
 typedef struct ShimSurf {
     SDL_Surface s;
@@ -211,6 +212,7 @@ static void step_input(void)
     /* the step's sound: the mix of the time the step took, played in the game's own time */
     static short sound[2 * OAL_MAX_FRAMES];
     int frames = (int)hc_call(HC_AUDIO_FRAMES, 0, 0, 0, 0, 0);
+    ail32_service();                   /* the music's timer interrupts of the step, each at its time */
     if (frames > 0 && oal_active()) { oal_render(sound, frames); hc_call(HC_AUDIO, (long)sound, frames, 0, 0, 0); }
     hc_call(HC_STEP, (long)&hc_in, 0, 0, 0, 0);
     for (int sc = 0; sc < HC_KEYS; sc++) {

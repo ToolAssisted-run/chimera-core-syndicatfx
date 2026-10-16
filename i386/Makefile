@@ -22,7 +22,7 @@ GAME_C   := $(filter-out %/oswindws.c,$(wildcard $(SYN)/src/*.c))
 # bflibrary: its own source list (Makefile.am), minus gpng.c (PNG screenshots: stubbed, no libpng in the core)
 BFL_C    := $(filter-out %/gpng.c %_s.c,$(wildcard $(SYN)/bflibrary/src/general/*.c)) $(wildcard $(SYN)/bflibrary/src/x86-win-sdl2/*.c)
 BFL_CXX  := $(wildcard $(SYN)/bflibrary/src/general/*.cpp) $(wildcard $(SYN)/bflibrary/src/x86-win-sdl2/*.cpp)
-SHIM_C   := $(ROOT)/i386/sdlshim.c $(ROOT)/i386/sound_stub.c $(ROOT)/i386/audio_stubs.c $(ROOT)/i386/oal.c $(ROOT)/i386/corehooks.c
+SHIM_C   := $(ROOT)/i386/sdlshim.c $(ROOT)/i386/sound_stub.c $(ROOT)/i386/audio_stubs.c $(ROOT)/i386/oal.c $(ROOT)/i386/ail32.c $(ROOT)/i386/corehooks.c
 BSND_C   := $(addprefix $(SYN)/bfsoundlib/src/,ail.c aila.c aildebug.c ailss.c ailvoc.c ailwav.c bfaudio.c cd.c dllload.c dpmi.c drv_oal.c init_mus.c init_snd.c memfile.c miscutil.c mseqnfad.c mseqnlst.c mseqnply.c mssdig.c msssys.c mssxdig.c mssxmidi.c oggvorbis.c sb16.c awe32.c awe32use.c snderr.c sndtimer.c ssampfad.c ssamplst.c ssampply.c streamfx.c variable.c)
 SHIM_CXX := $(ROOT)/i386/cxxrt.cpp
 WRAPPERS := wrappers_dos wrappers_game wrappers_libc wrappers_util

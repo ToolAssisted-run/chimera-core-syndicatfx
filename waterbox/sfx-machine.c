@@ -3,6 +3,7 @@
 #include "coro.h"
 #include "xlat.h"
 #include "xl_image.h"
+#include "opl3.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -18,21 +19,23 @@
 extern uint32_t xl_tls_base[8];
 void (*sfx_on_turn)(uint64_t, const uint8_t *, uint32_t);
 void (*sfx_on_log)(const char *, uint32_t);
+void (*sfx_on_fm_write)(uint64_t, uint16_t, uint8_t, int);
 
 enum { ST_READY, ST_RUNNING, ST_ENDED, ST_FATAL };
 static int state;
 static char errmsg[256];
 static Coro prog;
 static const HcInput *cur_in;
-static uint64_t steps, turns, clock_us, step_icount0, last_step_us, step_reads;
+static uint64_t steps, turns, clock_us, step_icount0, last_step_us, step_reads, step_io_us;
 /* Virtual time inside a step: the game's logic never reads the clock (one turn per step), only waits
  * that spin on it do (the FLI player's frame delay). So each read within a step advances the clock by
- * 1 ms, and executed instructions buy time too (1000 per microsecond) so that no wait can hang. */
+ * 1 ms, and executed instructions buy time too (1000 per microsecond) so that no wait can hang; a port
+ * access takes 1 us (an ISA bus cycle - the music driver times the FM chip's timers so). */
 #define INSTR_PER_US 1000u
 static uint64_t now_us(void)
 {
     uint64_t by_instr = (xl.icount - step_icount0) / INSTR_PER_US, by_reads = step_reads * 1000u;
-    return clock_us + (by_instr > by_reads ? by_instr : by_reads);
+    return clock_us + (by_instr > by_reads ? by_instr : by_reads) + step_io_us;
 }
 static uint64_t clock_read(void) { step_reads++; return now_us(); }
 
@@ -51,6 +54,100 @@ static void fix_step(void)
     audio_frames = (int)(audio_acc / 1000000u); audio_acc %= 1000000u;
     if (audio_frames > SFX_AUDIO_MAX) audio_frames = SFX_AUDIO_MAX;
     step_fixed = 1;
+}
+
+/* ---------------------------------------------------------------- the PIT and the FM chip
+ * The PIT's channel 0 interrupts at its divisor's period (1193182 Hz input clock) once the program
+ * programs it (HC_PIT); the program runs each interrupt when told it is due (HC_PIT_TICK: at the step's
+ * end, and whenever the music's API is called, so the interrupts keep their order with the program's
+ * own writes). Times here are in PIT clocks since the program started.
+ *
+ * The FM chip is the Sound Blaster's (an OPL3 in OPL2 mode, Nuked OPL3) at the Ad Lib's ports
+ * (0x388..0x38B, and the card's own 0x220..0x223, 0x228/0x229): its timers and status for the
+ * driver's detection, and every register write queued with its time - an interrupt's writes carry the
+ * interrupt's - so the step's sound is rendered with each write where it happened. */
+#define PIT_HZ 1193182u
+static uint64_t us2clk(uint64_t us) { return us * PIT_HZ / 1000000u; }
+static int pit_armed, in_tick;
+static uint64_t n_ticks, n_opl_writes;
+static uint64_t pit_next, pit_period, tick_clk;
+static uint64_t step_end_clk(void) { return us2clk(clock_us + last_step_us); }
+static int pit_tick(void)
+{
+    uint64_t limit = step_fixed ? step_end_clk() : us2clk(now_us());
+    in_tick = 0;
+    if (!pit_armed || (step_fixed ? pit_next >= limit : pit_next > limit)) return 0;
+    tick_clk = pit_next; pit_next += pit_period; in_tick = 1; n_ticks++;
+    return 1;
+}
+
+static opl3_chip opl;
+static int opl_used;
+static uint8_t opl_index, opl_t1, opl_t2, opl_ctrl, opl_status;
+static uint16_t opl_bank;
+static uint64_t opl_t1_start, opl_t2_start;
+typedef struct { uint64_t clk; uint16_t reg; uint8_t val; } OplWrite;
+#define OPLQ 16384
+static OplWrite oplq[OPLQ];
+static int oplq_n;
+static uint64_t oplq_last;
+static void opl_write(uint16_t reg, uint8_t v)
+{
+    uint64_t now = now_us();
+    if (reg == 2) opl_t1 = v;
+    else if (reg == 3) opl_t2 = v;
+    else if (reg == 4) {
+        if (v & 0x80) opl_status = 0;
+        else { opl_ctrl = v; if (v & 1) opl_t1_start = now; if (v & 2) opl_t2_start = now; }
+    }
+    uint64_t clk = in_tick ? tick_clk : us2clk(now);
+    if (step_fixed && clk > step_end_clk()) clk = step_end_clk();
+    if (clk < oplq_last) clk = oplq_last;
+    oplq_last = clk;
+    if (oplq_n == OPLQ) { OPL3_WriteReg(&opl, oplq[0].reg, oplq[0].val); memmove(oplq, oplq + 1, sizeof oplq[0] * (OPLQ - 1)); oplq_n--; }
+    oplq[oplq_n].clk = clk; oplq[oplq_n].reg = reg; oplq[oplq_n].val = v; oplq_n++;
+    opl_used = 1; n_opl_writes++;
+    if (sfx_on_fm_write) sfx_on_fm_write(clk, reg, v, in_tick);
+}
+static uint8_t opl_read_status(void)
+{
+    uint64_t now = now_us();
+    if ((opl_ctrl & 1) && !(opl_ctrl & 0x40) && now >= opl_t1_start + (256u - opl_t1) * 80u) opl_status |= 0xC0;
+    if ((opl_ctrl & 2) && !(opl_ctrl & 0x20) && now >= opl_t2_start + (256u - opl_t2) * 320u) opl_status |= 0xA0;
+    return opl_status;
+}
+static int opl_port(uint32_t port) { return (port >= 0x388 && port <= 0x38B) || (port >= 0x220 && port <= 0x223) || port == 0x228 || port == 0x229; }
+uint32_t xl_host_in(uint32_t port, int sz)
+{
+    (void)sz;
+    step_io_us++;
+    return (opl_port(port) && !(port & 1)) ? opl_read_status() : 0xFF;
+}
+void xl_host_out(uint32_t port, uint32_t v, int sz)
+{
+    (void)sz;
+    step_io_us++;
+    if (!opl_port(port)) return;
+    if (!(port & 1)) { opl_index = (uint8_t)v; opl_bank = (port & 2) && port != 0x228 ? 0x100 : 0; }
+    else opl_write((uint16_t)(opl_bank | opl_index), (uint8_t)v);
+}
+/* the step's FM sound, added to what audio_out holds: writes up to each frame's time, then the frame */
+static void render_fm(void)
+{
+    if (!opl_used) return;
+    uint64_t start = us2clk(clock_us);
+    int k = 0;
+    for (int f = 0; f < audio_frames; f++) {
+        uint64_t t = start + (uint64_t)f * PIT_HZ / 44100u;
+        while (k < oplq_n && oplq[k].clk <= t) { OPL3_WriteReg(&opl, oplq[k].reg, oplq[k].val); k++; }
+        int16_t s[2];
+        OPL3_GenerateResampled(&opl, s);
+        for (int c = 0; c < 2; c++) {
+            int v = audio_out[2 * f + c] + s[c];
+            audio_out[2 * f + c] = (int16_t)(v > 32767 ? 32767 : v < -32768 ? -32768 : v);
+        }
+    }
+    memmove(oplq, oplq + k, sizeof oplq[0] * (size_t)(oplq_n - k)); oplq_n -= k;   /* the next step's */
 }
 static uint32_t brk_start, brk_cur, level_addr, level_len;
 static uint8_t mmap_used[(MMAP_TOP - MMAP_BASE) / PAGE];
@@ -270,6 +367,9 @@ void xl_host_syscall(void)
     case HC_TICKS: r = (int32_t)(clock_read() / 1000); break;
     case HC_DELAY: r = 0; break;
     case HC_AUDIO_FRAMES: fix_step(); r = audio_frames; break;
+    case HC_CODE: xl_interp_range(a1, a1 + a2); r = 0; break;
+    case HC_PIT: pit_period = a1 ? a1 : 65536u; pit_next = us2clk(now_us()) + pit_period; pit_armed = 1; r = 0; break;
+    case HC_PIT_TICK: r = pit_tick(); break;
     case HC_AUDIO:
         if (step_fixed && (int32_t)a2 > 0 && (int32_t)a2 <= audio_frames) { gcopy_in(audio_out, a1, a2 * 4u); audio_given = (int)a2; r = 0; }
         else r = -22;
@@ -357,7 +457,10 @@ int sfx_init(const SfxFile *mount, int nfiles, int argc, const char *const *argv
 {
     memset(files, 0, sizeof files); memset(fds, 0, sizeof fds); memset(mmap_used, 0, sizeof mmap_used);
     memset(&xl, 0, sizeof xl); memset(xl_tls_base, 0, sizeof(uint32_t) * 8);
-    steps = turns = clock_us = step_icount0 = last_step_us = step_reads = 0; audio_acc = 0; audio_frames = audio_given = step_fixed = 0; level_addr = level_len = 0; errmsg[0] = 0;
+    steps = turns = clock_us = step_icount0 = last_step_us = step_reads = step_io_us = 0; audio_acc = 0; audio_frames = audio_given = step_fixed = 0;
+    xl_interp_reset(); pit_armed = in_tick = 0; n_ticks = n_opl_writes = 0; pit_next = pit_period = tick_clk = 0;
+    OPL3_Reset(&opl, 44100); opl_used = 0; opl_index = opl_t1 = opl_t2 = opl_ctrl = opl_status = 0; opl_bank = 0;
+    opl_t1_start = opl_t2_start = 0; oplq_n = 0; oplq_last = 0; level_addr = level_len = 0; errmsg[0] = 0;
     for (int k = 0; k < nfiles; k++) {
         char norm[128]; normalize(mount[k].name, norm, sizeof norm);
         int f = vnew(norm, 0); if (f < 0) { snprintf(errmsg, sizeof errmsg, "too many files"); return -1; }
@@ -407,7 +510,8 @@ int sfx_step(const HcInput *in)
     coro_resume(&prog);
     fix_step();
     if (audio_given < audio_frames) memset(audio_out + 2 * audio_given, 0, (size_t)(audio_frames - audio_given) * 4u);
-    steps++; clock_us += last_step_us; step_icount0 = xl.icount; step_reads = 0;
+    render_fm(); in_tick = 0;
+    steps++; clock_us += last_step_us; step_icount0 = xl.icount; step_reads = 0; step_io_us = 0;
     if (prog.done && state == ST_RUNNING) state = ST_ENDED;
     return state == ST_FATAL ? -1 : state == ST_ENDED ? 1 : 0;
 }
@@ -417,6 +521,7 @@ const SfxVideo *sfx_video(void) { return &video; }
 int sfx_input_was_read(void) { return input_read; }
 uint64_t sfx_steps(void) { return steps; }
 uint64_t sfx_step_us(void) { return last_step_us; }
+void sfx_sound_counts(uint64_t *ticks, uint64_t *fm_writes, uint32_t *pit_divisor) { *ticks = n_ticks; *fm_writes = n_opl_writes; *pit_divisor = pit_armed ? (uint32_t)pit_period : 0; }
 const int16_t *sfx_audio(int *frames) { if (frames) *frames = audio_frames; return audio_out; }
 uint64_t sfx_turns(void) { return turns; }
 uint64_t sfx_cycles(void) { return xl.icount; }

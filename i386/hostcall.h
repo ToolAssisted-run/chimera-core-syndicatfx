@@ -11,6 +11,9 @@
 #define HC_DELAY    0x5C05  /* arg1 = milliseconds: the virtual clock does not advance (the step does); ignored */
 #define HC_AUDIO_FRAMES 0x5C06  /* the step is over: fixes its length, returns its sound frames (44100 Hz stereo) */
 #define HC_AUDIO    0x5C07  /* arg1 = the step's sound (frames x 2 int16), arg2 = frames */
+#define HC_CODE     0x5C08  /* arg1 = address, arg2 = length: code loaded at run time, for the interpreter */
+#define HC_PIT      0x5C09  /* arg1 = the PIT's channel 0 divisor (0 = 65536): its interrupt's period */
+#define HC_PIT_TICK 0x5C0A  /* 1: a PIT interrupt is due - run it now (it happens at its own time); 0: none */
 
 #define HC_KEYS 256
 typedef struct HcInput {

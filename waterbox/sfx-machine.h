@@ -21,7 +21,8 @@ const SfxVideo *sfx_video(void);    /* the last presented picture */
 int  sfx_input_was_read(void);      /* the step ended at an input read (always, unless the program ended) */
 uint64_t sfx_steps(void);
 uint64_t sfx_step_us(void);         /* the virtual length of the step just run: >= SFX_STEP_US */
-const int16_t *sfx_audio(int *frames);   /* its sound: 44100 Hz stereo, exactly the step's time (silence without) */
+const int16_t *sfx_audio(int *frames);
+void sfx_sound_counts(uint64_t *ticks, uint64_t *fm_writes, uint32_t *pit_divisor);   /* diagnostics */   /* its sound: 44100 Hz stereo, exactly the step's time (silence without) */
 uint64_t sfx_turns(void);           /* game loop turns so far */
 uint64_t sfx_cycles(void);          /* translated instructions executed */
 uint8_t *sfx_arena(void);           /* the 32-bit guest address space */
@@ -29,4 +30,5 @@ uint32_t sfx_arena_size(void);
 uint32_t sfx_level_block(uint32_t *len);   /* guest address of the level block (0 before the first turn) */
 extern void (*sfx_on_turn)(uint64_t turn, const uint8_t *block, uint32_t len);   /* optional (verification) */
 extern void (*sfx_on_log)(const char *text, uint32_t len);                        /* optional: stdout/stderr */
+extern void (*sfx_on_fm_write)(uint64_t pit_clock, uint16_t reg, uint8_t val, int in_interrupt);   /* optional */
 #endif
