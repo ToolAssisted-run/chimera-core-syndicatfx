@@ -70,8 +70,8 @@ pointers staying 32-bit. Nothing of the game is reimplemented by hand.
 
 Chimera ships no cores and downloads nothing. Download the core's `.chimeraCore` package from this
 repository's [Releases](https://github.com/ToolAssisted-run/chimera-core-syndicatfx/releases) page (a rolling
-`dev` build, dated `nightly-YYYY-MM-DD` builds), or build it, and put it in the `Cores` folder beside
-`Chimera.exe` (or the folder chosen in File > Core Manager > Change folder...). The same file works on Linux
+`dev` build, dated `nightly-YYYY-MM-DD` builds), or build it, and put it in the `cores` folder beside
+Chimera's program (or the folder chosen in Tools > Core Manager... > Change folder...). The same file works on Linux
 and on Windows. The game's own files are not in the package: a project brings them as firmware (above).
 
 ## Building
