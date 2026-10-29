@@ -113,7 +113,7 @@ report "declarations:config" PASS "firmware, kind, buttons, axes: $nfw"
 wd="$(workdir nofiles '{}')"
 out="$(boxed "$wd" --frames 1 2>&1 | grep '^loadError=')"
 case "$out" in
-	*"missing game file"*) report "refusal:no-files" PASS "${out#loadError=}" ;;
+	*"error.missing_file"*) report "refusal:no-files" PASS "${out#loadError=}" ;;
 	*) report "refusal:no-files" FAIL "Init did not refuse: $out" ;;
 esac
 

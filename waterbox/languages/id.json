@@ -1,0 +1,21 @@
+{
+	"texts": {
+		"error.game_ended": "Permainan berakhir.",
+		"error.missing_file": "File game %1 tidak ada (dari CD Syndicate Plus, SYNDICAT\\DATA).",
+		"error.no_arena": "Tidak ada memori untuk arena game.",
+		"error.no_stack": "Tidak ada memori untuk tumpukan (stack) game.",
+		"error.too_many_files": "Game membuka terlalu banyak file.",
+		"firmware.data_file.about": "Syndicate Plus CD (EA/Bullfrog 1994): %1. Anda harus menyediakannya. Paket ini tidak berisi data game sama sekali. File hasil modifikasi milik Anda bisa dipakai sebagai gantinya, dan proyek mencatat file yang dipakai secara tepat.",
+		"firmware.file": "%1",
+		"property.ended": "Program berakhir",
+		"property.level_seed": "Seed acak: seed*0x24A1+0x24DF tiap pengambilan; dimuat bersama misi dari GAMExx.DAT",
+		"property.level_timer": "Kata pewaktu level (0x8010C)",
+		"property.mission": "Misi yang sedang dimainkan (nomor level game)",
+		"property.steps": "Langkah yang dijalankan: satu putaran loop game tiap langkah, 1/16 detik",
+		"property.turns": "Putaran loop game sebuah misi yang sudah dijalankan",
+		"setting.language": "Bahasa",
+		"setting.language.about": "Bahasa game (opsi '-c' asli). Menu berasal dari terjemahan SyndicatFX, dan briefing misi dari set milik CD. Ini mengubah game (teks dan tata letaknya), jadi rekaman mencatatnya.",
+		"setting.sound": "Suara",
+		"setting.sound.about": "Kartu suara yang dipilih di setup game. 'Sound Blaster' adalah bawaan dan satu-satunya kartu yang didukung game. Efek suara digitalnya diputar satu per satu, seperti di kartu itu, dan musiknya diputar di chip FM-nya lewat driver milik game. 'None' berarti tanpa kartu (opsi '-s' asli). Game menunggu lagunya selesai sebelum misi yang menang atau kalah berakhir, jadi pilihan ini mengubah game, dan rekaman mencatatnya."
+	}
+}

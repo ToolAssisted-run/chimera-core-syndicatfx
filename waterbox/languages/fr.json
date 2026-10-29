@@ -1,0 +1,21 @@
+{
+	"texts": {
+		"error.game_ended": "La partie est terminée.",
+		"error.missing_file": "Le fichier du jeu %1 manque (du CD Syndicate Plus, SYNDICAT\\DATA).",
+		"error.no_arena": "Il n'y a pas de mémoire pour l'arène du jeu.",
+		"error.no_stack": "Il n'y a pas de mémoire pour la pile du jeu.",
+		"error.too_many_files": "Le jeu a ouvert trop de fichiers.",
+		"firmware.data_file.about": "Syndicate Plus CD (EA/Bullfrog 1994) : %1. C'est à vous de le fournir. Le paquet ne contient aucune donnée du jeu. Un fichier modifié à vous peut être utilisé à la place, et le projet garde le nom exact du fichier utilisé.",
+		"firmware.file": "%1",
+		"property.ended": "Le programme s'est terminé",
+		"property.level_seed": "La graine aléatoire : seed*0x24A1+0x24DF à chaque tirage ; chargée avec la mission depuis GAMExx.DAT",
+		"property.level_timer": "Le mot du chronomètre du niveau (0x8010C)",
+		"property.mission": "La mission jouée (le numéro de niveau du jeu)",
+		"property.steps": "Pas exécutés : un passage de la boucle du jeu chacun, 1/16 s",
+		"property.turns": "Tours de la boucle de jeu d'une mission exécutés jusqu'ici",
+		"setting.language": "Langue",
+		"setting.language.about": "La langue du jeu (l'option '-c' d'origine). Les menus viennent des traductions de SyndicatFX, et les briefings de mission des jeux de textes du CD. Cela change le jeu (ses textes et sa mise en page), donc un film l'enregistre.",
+		"setting.sound": "Son",
+		"setting.sound.about": "La carte son choisie dans la configuration du jeu. 'Sound Blaster' est le défaut et la seule carte que le jeu prend en charge. Ses sons numérisés jouent un à la fois, comme sur la carte, et la musique joue sur sa puce FM par le pilote propre au jeu. 'None' est l'absence de carte (l'option '-s' d'origine). Le jeu attend la fin de sa chanson avant qu'une mission gagnée ou perdue se termine : le choix change donc le jeu, et un film l'enregistre."
+	}
+}

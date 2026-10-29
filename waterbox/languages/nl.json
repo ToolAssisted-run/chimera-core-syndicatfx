@@ -1,0 +1,21 @@
+{
+	"texts": {
+		"error.game_ended": "Het spel is afgelopen.",
+		"error.missing_file": "Het spelbestand %1 ontbreekt (van de Syndicate Plus-cd, SYNDICAT\\DATA).",
+		"error.no_arena": "Er is geen geheugen voor de arena van het spel.",
+		"error.no_stack": "Er is geen geheugen voor de stapel van het spel.",
+		"error.too_many_files": "Het spel heeft te veel bestanden geopend.",
+		"firmware.data_file.about": "Syndicate Plus-cd (EA/Bullfrog 1994): %1. Je moet het aanleveren. Het pakket bevat geen van de gegevens van het spel. Een eigen gewijzigd bestand kan in plaats daarvan worden gebruikt; het project legt precies vast welk bestand het was.",
+		"firmware.file": "%1",
+		"property.ended": "Het programma is afgesloten",
+		"property.level_seed": "De willekeurige startwaarde: seed*0x24A1+0x24DF bij elke trekking; geladen met de missie uit GAMExx.DAT",
+		"property.level_timer": "Het timerwoord van het level (0x8010C)",
+		"property.mission": "De missie die wordt gespeeld (het levelnummer van het spel)",
+		"property.steps": "Uitgevoerde stappen: één doorgang van de lus van het spel per stap, 1/16 seconde",
+		"property.turns": "Tot nu toe uitgevoerde beurten van de spellus van een missie",
+		"setting.language": "Taal",
+		"setting.language.about": "De taal van het spel (de oorspronkelijke optie '-c'). De menu's komen uit de vertalingen van SyndicatFX, en de missiebriefings uit de eigen sets van de cd. Het verandert het spel (zijn teksten en indeling), dus een opname bewaart die.",
+		"setting.sound": "Geluid",
+		"setting.sound.about": "De geluidskaart die in de installatie van het spel is gekozen. 'Sound Blaster' is de standaard en de enige kaart die het spel ondersteunt. De gedigitaliseerde geluiden spelen één tegelijk, zoals op de kaart, en de muziek speelt op haar FM-chip via het eigen stuurprogramma van het spel. 'None' is geen kaart (de oorspronkelijke optie '-s'). Het spel wacht tot zijn liedje is afgelopen voordat een gewonnen of verloren missie eindigt, dus de keuze verandert het spel, en een opname bewaart haar."
+	}
+}

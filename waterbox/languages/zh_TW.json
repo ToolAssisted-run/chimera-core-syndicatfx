@@ -1,0 +1,21 @@
+{
+	"texts": {
+		"error.game_ended": "遊戲結束了。",
+		"error.missing_file": "遊戲檔案 %1 遺失（來自《Syndicate Plus》光碟的 SYNDICAT\\DATA）。",
+		"error.no_arena": "沒有遊戲競技場可用的記憶體。",
+		"error.no_stack": "沒有遊戲堆疊可用的記憶體。",
+		"error.too_many_files": "遊戲開啟的檔案太多。",
+		"firmware.data_file.about": "《Syndicate Plus》光碟（EA/Bullfrog 1994）：%1。你必須自行提供。本套件不含遊戲的任何資料。也可以改用你自己的修改版檔案，專案會記錄所用的確切檔案。",
+		"firmware.file": "%1",
+		"property.ended": "程式結束了",
+		"property.level_seed": "隨機種子：每次抽取為 seed*0x24A1+0x24DF；隨任務從 GAMExx.DAT 載入",
+		"property.level_timer": "關卡計時器字元（0x8010C）",
+		"property.mission": "正在進行的任務（遊戲的關卡編號）",
+		"property.steps": "已運行的步數：遊戲迴圈每跑一遍為一步，即 1/16 秒",
+		"property.turns": "到目前為止，任務遊戲迴圈已運行的回合數",
+		"setting.language": "語言",
+		"setting.language.about": "遊戲的語言（原版的「-c」選項）。選單來自 SyndicatFX 的翻譯，任務簡報則來自光碟自己的語言組。它會改變遊戲（其文字與排版），因此錄像會記錄它。",
+		"setting.sound": "音效",
+		"setting.sound.about": "遊戲設定中選擇的音效卡。「Sound Blaster」是預設值，也是遊戲唯一支援的音效卡。它的數位音效依卡片的方式一次播放一個，音樂則由遊戲自己的驅動程式在其 FM 晶片上播放。「None」表示沒有音效卡（原版的「-s」選項）。在任務勝利或失敗結束前，遊戲會等歌曲播完，因此此選擇會改變遊戲，錄像會記錄它。"
+	}
+}

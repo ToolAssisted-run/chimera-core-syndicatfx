@@ -463,12 +463,12 @@ int sfx_init(const SfxFile *mount, int nfiles, int argc, const char *const *argv
     opl_t1_start = opl_t2_start = 0; oplq_n = 0; oplq_last = 0; level_addr = level_len = 0; errmsg[0] = 0;
     for (int k = 0; k < nfiles; k++) {
         char norm[128]; normalize(mount[k].name, norm, sizeof norm);
-        int f = vnew(norm, 0); if (f < 0) { snprintf(errmsg, sizeof errmsg, "too many files"); return -1; }
+        int f = vnew(norm, 0); if (f < 0) { snprintf(errmsg, sizeof errmsg, "error.too_many_files"); return -1; }
         files[f].ro = mount[k].data; files[f].size = mount[k].size;
     }
     if (!xl_mem) {
         xl_mem = mmap(NULL, XL_ARENA_SIZE + 64, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-        if (xl_mem == MAP_FAILED) { xl_mem = NULL; snprintf(errmsg, sizeof errmsg, "arena allocation failed"); return -1; }
+        if (xl_mem == MAP_FAILED) { xl_mem = NULL; snprintf(errmsg, sizeof errmsg, "error.no_arena"); return -1; }
     }
     memset(xl_mem, 0, XL_ARENA_SIZE + 64);
     uint32_t end = 0;
@@ -497,7 +497,7 @@ int sfx_init(const SfxFile *mount, int nfiles, int argc, const char *const *argv
     for (int k = 0; k < naux; k++) { wr32(p, aux[k][0]); wr32(p + 4, aux[k][1]); p += 8; }
     ESP = sp; xl.fcw = 0x37F;
     if (prog.stack) munmap(prog.stack, prog.stack_size);
-    if (coro_init(&prog, 16u << 20, program_main, NULL) < 0) { snprintf(errmsg, sizeof errmsg, "coroutine stack allocation failed"); return -1; }
+    if (coro_init(&prog, 16u << 20, program_main, NULL) < 0) { snprintf(errmsg, sizeof errmsg, "error.no_stack"); return -1; }
     state = ST_READY; video.w = 320; video.h = 200; video.pixels = vid_pixels; video.palette = vid_pal;
     return 0;
 }

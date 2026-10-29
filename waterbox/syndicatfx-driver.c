@@ -6,6 +6,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* A text a person reads is a key of languages/en.json, each of its
+ * arguments after a TEXT_ARG (chimera docs/translations.md). TEXT_ARG is a
+ * string of its own so the byte after it is never read as more of its hex. */
+#define TEXT_ARG "\x1f"
+
 /* the port's own menu texts (built from SyndicatFX's lang/*.po by util/textdat.py, see the Makefile) */
 extern const unsigned char sfx_lang_eng[], sfx_lang_fre[], sfx_lang_ita[];
 extern const unsigned sfx_lang_eng_size, sfx_lang_fre_size, sfx_lang_ita_size;
@@ -35,7 +40,7 @@ int drv_init(const char *language, int sound, char *err, size_t errlen)
         const SfxFirmware *fw = &sfx_firmware[i];
         size_t size = 0;
         void *b = drv_file_open(fw->name, &size);
-        if (!b) { snprintf(err, errlen, "missing game file %s (from the Syndicate Plus CD, SYNDICAT\\DATA)", fw->name); return -1; }
+        if (!b) { snprintf(err, errlen, "error.missing_file" TEXT_ARG "%s", fw->name); return -1; }
         /* taken as it is: a file of the project's own may stand in for an original (the project pins its hash) */
         void *ro = drv_alloc_readonly(size ? size : 1); memcpy(ro, b, size); free(b);
         snprintf(names[i], sizeof names[i], "data/%s", fw->name);
@@ -91,7 +96,7 @@ void drv_step(void)
     input.mouse_y = (int)((int64_t)axes[1] * v->h / 65536);
     gamestate_to_game();
     int rc = sfx_step(&input);
-    if (rc) { ended = rc; snprintf(errbuf, sizeof errbuf, "%s", rc < 0 ? sfx_error() : "the game ended"); }
+    if (rc) { ended = rc; snprintf(errbuf, sizeof errbuf, "%s", rc < 0 ? sfx_error() : "error.game_ended"); }
     audio = sfx_audio(&audio_n);
     gamestate_from_game(ended);
     v = sfx_video();

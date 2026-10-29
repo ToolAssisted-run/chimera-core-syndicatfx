@@ -1,0 +1,21 @@
+{
+	"texts": {
+		"error.game_ended": "Das Spiel ist beendet.",
+		"error.missing_file": "Die Spieldatei %1 fehlt (von der Syndicate-Plus-CD, SYNDICAT\\DATA).",
+		"error.no_arena": "Für die Arena des Spiels ist kein Speicher da.",
+		"error.no_stack": "Für den Stapelspeicher des Spiels ist kein Speicher da.",
+		"error.too_many_files": "Das Spiel hat zu viele Dateien geöffnet.",
+		"firmware.data_file.about": "Syndicate Plus CD (EA/Bullfrog 1994): %1. Sie müssen sie selbst bereitstellen. Das Paket enthält keine Daten des Spiels. Stattdessen kann eine eigene, veränderte Datei verwendet werden; das Projekt speichert genau, welche Datei es war.",
+		"firmware.file": "%1",
+		"property.ended": "Das Programm ist beendet",
+		"property.level_seed": "Der Zufallsstartwert: Startwert*0x24A1+0x24DF bei jeder Ziehung; mit der Mission aus GAMExx.DAT geladen",
+		"property.level_timer": "Das Timerwort des Levels (0x8010C)",
+		"property.mission": "Die gespielte Mission (die Levelnummer des Spiels)",
+		"property.steps": "Ausgeführte Schritte: je ein Durchlauf der Spielschleife, 1/16 s",
+		"property.turns": "Bisher ausgeführte Durchläufe der Spielschleife einer Mission",
+		"setting.language": "Sprache",
+		"setting.language.about": "Die Sprache des Spiels (die ursprüngliche Option „-c“). Die Menüs stammen aus den Übersetzungen von SyndicatFX, die Missionsbeschreibungen aus den eigenen Sätzen der CD. Sie ändert das Spiel (seine Texte und sein Layout), daher speichert ein Film sie.",
+		"setting.sound": "Ton",
+		"setting.sound.about": "Die Soundkarte, die im Setup des Spiels gewählt ist. 'Sound Blaster' ist die Vorgabe und die einzige Karte, die das Spiel unterstützt. Ihre digitalisierten Töne spielen einzeln, wie auf der Karte, und die Musik spielt auf ihrem FM-Chip über den eigenen Treiber des Spiels. 'None' ist keine Karte (die ursprüngliche Option „-s“). Das Spiel wartet, bis sein Lied endet, bevor eine gewonnene oder verlorene Mission endet; daher ändert die Wahl das Spiel, und ein Film speichert sie."
+	}
+}

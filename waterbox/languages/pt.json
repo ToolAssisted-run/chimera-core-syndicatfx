@@ -1,0 +1,21 @@
+{
+	"texts": {
+		"error.game_ended": "O jogo terminou.",
+		"error.missing_file": "O arquivo do jogo %1 está faltando (do CD Syndicate Plus, SYNDICAT\\DATA).",
+		"error.no_arena": "Não há memória para a arena do jogo.",
+		"error.no_stack": "Não há memória para a pilha do jogo.",
+		"error.too_many_files": "O jogo abriu arquivos demais.",
+		"firmware.data_file.about": "CD Syndicate Plus (EA/Bullfrog 1994): %1. Você precisa fornecê-lo. O pacote não contém nenhum dado do jogo. Um arquivo modificado seu pode ser usado no lugar, e o projeto registra exatamente qual arquivo foi usado.",
+		"firmware.file": "%1",
+		"property.ended": "O programa terminou",
+		"property.level_seed": "A semente aleatória: seed*0x24A1+0x24DF a cada sorteio; carregada com a missão a partir de GAMExx.DAT",
+		"property.level_timer": "A palavra do temporizador da fase (0x8010C)",
+		"property.mission": "A missão que está sendo jogada (o número da fase do jogo)",
+		"property.steps": "Passos executados: uma passagem do laço do jogo cada, 1/16 s",
+		"property.turns": "Voltas do laço de jogo de uma missão executadas até agora",
+		"setting.language": "Idioma",
+		"setting.language.about": "O idioma do jogo (a opção original '-c'). Os menus vêm das traduções do SyndicatFX, e os briefings das missões dos conjuntos do próprio CD. Muda o jogo (os seus textos e o layout), por isso um filme o grava.",
+		"setting.sound": "Som",
+		"setting.sound.about": "A placa de som escolhida na configuração do jogo. 'Sound Blaster' é o padrão e a única placa que o jogo suporta. Os seus sons digitalizados tocam um de cada vez, como na placa, e a música toca no chip FM dela pelo driver do próprio jogo. 'None' é nenhuma placa (a opção original '-s'). O jogo espera a sua música terminar antes de uma missão vencida ou perdida terminar, então a escolha muda o jogo, e um filme a grava."
+	}
+}

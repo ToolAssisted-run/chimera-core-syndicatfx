@@ -1,0 +1,21 @@
+{
+	"texts": {
+		"error.game_ended": "游戏结束了。",
+		"error.missing_file": "缺少游戏文件 %1（来自《辛迪加 Plus》光盘，SYNDICAT\\DATA）。",
+		"error.no_arena": "没有供游戏竞技场使用的内存。",
+		"error.no_stack": "没有供游戏堆栈使用的内存。",
+		"error.too_many_files": "游戏打开的文件太多。",
+		"firmware.data_file.about": "《辛迪加 Plus》光盘（EA/Bullfrog 1994）：%1。您需要自行提供它。本程序包不包含游戏的任何数据。您也可以改用自己修改过的文件，项目会记录所用的确切文件。",
+		"firmware.file": "%1",
+		"property.ended": "程序结束了",
+		"property.level_seed": "随机种子：每次抽取时 seed*0x24A1+0x24DF；随任务从 GAMExx.DAT 加载",
+		"property.level_timer": "关卡计时器字（0x8010C）",
+		"property.mission": "正在进行的任务（游戏的关卡编号）",
+		"property.steps": "已运行的步数：游戏循环每运行一遍为一步，每步 1/16 秒",
+		"property.turns": "至今已运行的任务游戏循环的轮数",
+		"setting.language": "语言",
+		"setting.language.about": "游戏的语言（原版的“-c”选项）。菜单来自 SyndicatFX 的翻译，任务简报来自光盘自带的版本。它会改变游戏（其文字和布局），因此录像会记录它。",
+		"setting.sound": "声音",
+		"setting.sound.about": "游戏设置中所选的声卡。“Sound Blaster”是默认选项，也是游戏唯一支持的声卡。其数字化声音像在声卡上那样一次只播放一个，音乐则通过游戏自己的驱动程序在其 FM 芯片上播放。“None”表示没有声卡（原版的“-s”选项）。游戏会等待其歌曲播放完毕，才结束已成功或失败的任务，因此此选择会改变游戏，录像会记录它。"
+	}
+}

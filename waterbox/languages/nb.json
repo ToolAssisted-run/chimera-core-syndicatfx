@@ -1,0 +1,21 @@
+{
+	"texts": {
+		"error.game_ended": "Spillet er avsluttet.",
+		"error.missing_file": "Spillfilen %1 mangler (fra Syndicate Plus-CD-en, SYNDICAT\\DATA).",
+		"error.no_arena": "Det er ikke nok minne til spillets arena.",
+		"error.no_stack": "Det er ikke nok minne til spillets stakk.",
+		"error.too_many_files": "Spillet åpnet for mange filer.",
+		"firmware.data_file.about": "Syndicate Plus CD (EA/Bullfrog 1994): %1. Du må levere den. Pakken inneholder ingen av spillets data. En egen, endret fil kan brukes i stedet, og prosjektet registrerer nøyaktig hvilken fil det var.",
+		"firmware.file": "%1",
+		"property.ended": "Programmet er avsluttet",
+		"property.level_seed": "Det tilfeldige frøet: seed*0x24A1+0x24DF for hvert trekk; lastet med oppdraget fra GAMExx.DAT",
+		"property.level_timer": "Nivåets tidtakerord (0x8010C)",
+		"property.mission": "Oppdraget som spilles (spillets nivånummer)",
+		"property.steps": "Kjørte steg: ett gjennomløp av spillets løkke hver, 1/16 s",
+		"property.turns": "Runder av et oppdrags spillløkke kjørt så langt",
+		"setting.language": "Språk",
+		"setting.language.about": "Spillets språk (det originale valget «-c»). Menyene kommer fra SyndicatFX sine oversettelser, og oppdragsbriefingene fra CD-ens egne sett. Det endrer spillet (dets tekster og oppsett), så en innspilling lagrer det.",
+		"setting.sound": "Lyd",
+		"setting.sound.about": "Lydkortet valgt i spillets oppsett. «Sound Blaster» er standard og det eneste kortet spillet støtter. Dets digitaliserte lyder spilles én om gangen, slik kortet gjør, og musikken spilles på FM-brikken gjennom spillets egen driver. «None» er ingen kort (det originale valget «-s»). Spillet venter til sangen er ferdig før et vunnet eller tapt oppdrag avsluttes, så valget endrer spillet, og en innspilling lagrer det."
+	}
+}

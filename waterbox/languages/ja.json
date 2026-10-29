@@ -1,0 +1,21 @@
+{
+	"texts": {
+		"error.game_ended": "ゲームが終了しました。",
+		"error.missing_file": "ゲームのファイル %1 がありません(Syndicate Plus CD の SYNDICAT\\DATA にあるものです)。",
+		"error.no_arena": "ゲームのアリーナ用のメモリがありません。",
+		"error.no_stack": "ゲームのスタック用のメモリがありません。",
+		"error.too_many_files": "ゲームが開いたファイルが多すぎます。",
+		"firmware.data_file.about": "Syndicate Plus CD(EA/Bullfrog 1994): %1。ご自身で用意する必要があります。このパッケージにはゲームのデータは一切含まれません。代わりにご自身で修正したファイルを使うこともでき、その場合はプロジェクトがどのファイルかを正確に記録します。",
+		"firmware.file": "%1",
+		"property.ended": "プログラムが終了した",
+		"property.level_seed": "乱数の種: 描画のたびに seed*0x24A1+0x24DF。GAMExx.DAT からミッションと一緒に読み込まれる",
+		"property.level_timer": "レベルのタイマーの語(0x8010C)",
+		"property.mission": "再生中のミッション(ゲームのレベル番号)",
+		"property.steps": "実行されたステップ。ゲームのループ1回につき1つ、1/16秒",
+		"property.turns": "これまでに実行されたミッションのゲームループの回数",
+		"setting.language": "言語",
+		"setting.language.about": "ゲームの言語(オリジナルの「-c」オプション)。メニューは SyndicatFX の翻訳から、ミッションの説明は CD 自身の版から来ます。ゲームのテキストとレイアウトが変わるため、ムービーが記録します。",
+		"setting.sound": "サウンド",
+		"setting.sound.about": "ゲームのセットアップで選んだサウンドカード。'Sound Blaster' が既定で、ゲームが対応する唯一のカードです。そのデジタル音はカードと同じく1つずつ鳴り、音楽はゲーム独自のドライバーを通して FM チップで鳴ります。'None' はカードなし(オリジナルの「-s」オプション)です。ゲームは、勝ったまたは負けたミッションが終わる前に曲が終わるのを待つため、この選択はゲームを変え、ムービーが記録します。"
+	}
+}

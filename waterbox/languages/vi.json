@@ -1,0 +1,21 @@
+{
+	"texts": {
+		"error.game_ended": "Game đã kết thúc.",
+		"error.missing_file": "Thiếu tệp game %1 (từ đĩa CD Syndicate Plus, SYNDICAT\\DATA).",
+		"error.no_arena": "Không có bộ nhớ cho đấu trường của game.",
+		"error.no_stack": "Không có bộ nhớ cho ngăn xếp của game.",
+		"error.too_many_files": "Game đã mở quá nhiều tệp.",
+		"firmware.data_file.about": "Syndicate Plus CD (EA/Bullfrog 1994): %1. Bạn phải cung cấp nó. Gói không chứa dữ liệu nào của game. Có thể dùng một tệp đã chỉnh sửa của riêng bạn thay thế, và dự án ghi lại chính xác tệp nào đã được dùng.",
+		"firmware.file": "%1",
+		"property.ended": "Chương trình đã kết thúc",
+		"property.level_seed": "Hạt giống ngẫu nhiên: seed*0x24A1+0x24DF mỗi lần rút; được nạp cùng nhiệm vụ từ GAMExx.DAT",
+		"property.level_timer": "Từ bộ đếm thời gian của màn (0x8010C)",
+		"property.mission": "Nhiệm vụ đang chơi (số màn của game)",
+		"property.steps": "Số bước đã chạy: mỗi bước là một vòng lặp của game, 1/16 giây",
+		"property.turns": "Số lượt của vòng lặp game của một nhiệm vụ đã chạy đến nay",
+		"setting.language": "Ngôn ngữ",
+		"setting.language.about": "Ngôn ngữ của game (tùy chọn '-c' gốc). Menu lấy từ bản dịch của SyndicatFX, còn phần giới thiệu nhiệm vụ lấy từ bộ của chính đĩa CD. Nó thay đổi game (chữ và bố cục), nên bản ghi hình lưu lại nó.",
+		"setting.sound": "Âm thanh",
+		"setting.sound.about": "Card âm thanh được chọn trong cài đặt của game. 'Sound Blaster' là mặc định và là card duy nhất game hỗ trợ. Các âm thanh số hóa của nó phát từng cái một, như trên card, và nhạc phát trên chip FM của nó qua trình điều khiển riêng của game. 'None' là không có card (tùy chọn '-s' gốc). Game chờ bài hát của nó kết thúc trước khi một nhiệm vụ thắng hoặc thua kết thúc, nên lựa chọn này thay đổi game, và bản ghi hình lưu lại nó."
+	}
+}

@@ -1,0 +1,21 @@
+{
+	"texts": {
+		"error.game_ended": "게임이 끝났습니다.",
+		"error.missing_file": "게임 파일 %1이(가) 없습니다 (Syndicate Plus CD의 SYNDICAT\\DATA에 있어야 함).",
+		"error.no_arena": "게임의 경기장을 위한 메모리가 없습니다.",
+		"error.no_stack": "게임 스택을 위한 메모리가 없습니다.",
+		"error.too_many_files": "게임이 파일을 너무 많이 열었습니다.",
+		"firmware.data_file.about": "Syndicate Plus CD(EA/Bullfrog 1994): %1. 직접 제공해야 합니다. 패키지에는 게임 데이터가 하나도 들어 있지 않습니다. 대신 직접 가진 수정 파일을 쓸 수 있으며, 프로젝트에는 어떤 파일을 썼는지 정확히 기록됩니다.",
+		"firmware.file": "%1",
+		"property.ended": "프로그램이 끝남",
+		"property.level_seed": "난수 시드: 매번 뽑을 때 seed*0x24A1+0x24DF; GAMExx.DAT에서 임무와 함께 불러옴",
+		"property.level_timer": "단계 타이머 워드 (0x8010C)",
+		"property.mission": "플레이 중인 임무 (게임의 단계 번호)",
+		"property.steps": "실행된 단계 수: 게임 루프를 한 바퀴 돌 때마다 1개, 1/16초",
+		"property.turns": "지금까지 실행된 임무 게임 루프의 턴 수",
+		"setting.language": "언어",
+		"setting.language.about": "게임의 언어입니다 (원래의 '-c' 옵션). 메뉴는 SyndicatFX의 번역에서, 임무 브리핑은 CD 자체의 세트에서 가져옵니다. 게임의 텍스트와 배치를 바꾸므로 무비에 기록됩니다.",
+		"setting.sound": "사운드",
+		"setting.sound.about": "게임 설치에서 고른 사운드 카드입니다. '사운드 블래스터'가 기본이며, 게임이 지원하는 유일한 카드입니다. 디지털 효과음은 카드에서처럼 한 번에 하나씩 재생되고, 음악은 게임 자체 드라이버를 거쳐 FM 칩에서 재생됩니다. '없음'은 카드가 없는 상태입니다(원래의 '-s' 옵션). 게임은 임무에서 이기거나 질 때 노래가 끝날 때까지 기다리므로, 이 선택은 게임을 바꾸며 무비에 기록됩니다."
+	}
+}

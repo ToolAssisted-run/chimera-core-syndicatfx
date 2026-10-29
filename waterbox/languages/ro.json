@@ -1,0 +1,21 @@
+{
+	"texts": {
+		"error.game_ended": "Jocul s-a încheiat.",
+		"error.missing_file": "Fișierul jocului %1 lipsește (de pe CD-ul Syndicate Plus, SYNDICAT\\DATA).",
+		"error.no_arena": "Nu există memorie pentru arena jocului.",
+		"error.no_stack": "Nu există memorie pentru stiva jocului.",
+		"error.too_many_files": "Jocul a deschis prea multe fișiere.",
+		"firmware.data_file.about": "CD-ul Syndicate Plus (EA/Bullfrog 1994): %1. Trebuie să-l furnizezi. Pachetul nu conține niciunul dintre datele jocului. În locul lui poate fi folosit un fișier modificat de tine, iar proiectul notează exact ce fișier a fost.",
+		"firmware.file": "%1",
+		"property.ended": "Programul s-a încheiat",
+		"property.level_seed": "Sămânța aleatorie: seed*0x24A1+0x24DF la fiecare extragere; încărcată odată cu misiunea din GAMExx.DAT",
+		"property.level_timer": "Cuvântul cronometrului nivelului (0x8010C)",
+		"property.mission": "Misiunea jucată (numărul nivelului jocului)",
+		"property.steps": "Pași rulați: câte o trecere a buclei jocului, fiecare 1/16 s",
+		"property.turns": "Ture ale buclei de joc a unei misiuni rulate până acum",
+		"setting.language": "Limba",
+		"setting.language.about": "Limba jocului (opțiunea originală '-c'). Meniurile vin din traducerile SyndicatFX, iar briefing-urile misiunilor din seturile proprii ale CD-ului. Schimbă jocul (textele și așezarea lui), deci o înregistrare o reține.",
+		"setting.sound": "Sunetul",
+		"setting.sound.about": "Placa de sunet aleasă în configurarea jocului. 'Sound Blaster' este implicită și singura placă pe care o suportă jocul. Sunetele ei digitizate se redau unul câte unul, ca pe placă, iar muzica se redă pe cipul ei FM prin driverul propriu al jocului. 'None' înseamnă fără placă (opțiunea originală '-s'). Jocul așteaptă ca melodia să se termine înainte ca o misiune câștigată sau pierdută să se încheie, deci alegerea schimbă jocul, iar o înregistrare o reține."
+	}
+}

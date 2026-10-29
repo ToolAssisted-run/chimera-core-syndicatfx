@@ -1,0 +1,21 @@
+{
+	"texts": {
+		"error.game_ended": "The game ended.",
+		"error.missing_file": "The game file %1 is missing (from the Syndicate Plus CD, SYNDICAT\\DATA).",
+		"error.no_arena": "There is no memory for the game's arena.",
+		"error.no_stack": "There is no memory for the game's stack.",
+		"error.too_many_files": "The game opened too many files.",
+		"firmware.data_file.about": "Syndicate Plus CD (EA/Bullfrog 1994): %1. You have to supply it. The package contains none of the game's data. A modified file of your own can be used instead, and the project records exactly which file it was.",
+		"firmware.file": "%1",
+		"property.ended": "The program ended",
+		"property.level_seed": "The random seed: seed*0x24A1+0x24DF each draw; loaded with the mission from GAMExx.DAT",
+		"property.level_timer": "The level's timer word (0x8010C)",
+		"property.mission": "The mission being played (the game's level number)",
+		"property.steps": "Steps run: one pass of the game's loop each, 1/16 s",
+		"property.turns": "Turns of a mission's game loop run so far",
+		"setting.language": "Language",
+		"setting.language.about": "The game's language (the original '-c' option). The menus come from SyndicatFX's translations, and the mission briefings from the CD's own sets. It changes the game (its texts and layout), so a movie records it.",
+		"setting.sound": "Sound",
+		"setting.sound.about": "The sound card chosen in the game's setup. 'Sound Blaster' is the default and the only card the game supports. Its digitized sounds play one at a time, as on the card, and the music plays on its FM chip through the game's own driver. 'None' is no card (the original '-s' option). The game waits for its song to end before a won or lost mission ends, so the choice changes the game, and a movie records it."
+	}
+}

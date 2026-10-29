@@ -1,0 +1,21 @@
+{
+	"texts": {
+		"error.game_ended": "Hra skončila.",
+		"error.missing_file": "Herní soubor %1 chybí (z CD Syndicate Plus, SYNDICAT\\DATA).",
+		"error.no_arena": "Pro arénu hry není paměť.",
+		"error.no_stack": "Pro zásobník hry není paměť.",
+		"error.too_many_files": "Hra otevřela příliš mnoho souborů.",
+		"firmware.data_file.about": "Syndicate Plus CD (EA/Bullfrog 1994): %1. Musíte jej dodat. Balíček neobsahuje žádná data hry. Místo něj lze použít vlastní upravený soubor a projekt přesně zaznamená, který soubor to byl.",
+		"firmware.file": "%1",
+		"property.ended": "Program skončil",
+		"property.level_seed": "Náhodné semeno: seed*0x24A1+0x24DF při každém losování; načteno s misí ze GAMExx.DAT",
+		"property.level_timer": "Slovo časovače úrovně (0x8010C)",
+		"property.mission": "Hraná mise (číslo úrovně hry)",
+		"property.steps": "Provedené kroky: jeden průchod smyčkou hry každý, 1/16 s",
+		"property.turns": "Dosud proběhlé otáčky herní smyčky mise",
+		"setting.language": "Jazyk",
+		"setting.language.about": "Jazyk hry (původní volba '-c'). Nabídky pocházejí z překladů SyndicatFX a zadání misí z vlastních sad CD. Jazyk mění hru (její texty a rozložení), takže ho záznam zaznamená.",
+		"setting.sound": "Zvuk",
+		"setting.sound.about": "Zvuková karta zvolená v nastavení hry. 'Sound Blaster' je výchozí a jediná karta, kterou hra podporuje. Její digitalizované zvuky hrají jeden po druhém, jako na kartě, a hudba hraje na jejím čipu FM přes vlastní ovladač hry. 'None' znamená žádnou kartu (původní volba '-s'). Hra čeká, až skončí její píseň, než se vyhraná nebo prohraná mise ukončí, takže volba mění hru a záznam ji zaznamenává."
+	}
+}

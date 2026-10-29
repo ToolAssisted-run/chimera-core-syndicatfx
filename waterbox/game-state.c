@@ -74,13 +74,13 @@ const char *gs_properties_json(void)
 {
     if (g_len) return g_table;
     add("{ \"properties\": [");
-    prop("Steps", "Game State", 0, "u32", "Game", "\"writable\": false, \"description\": \"Steps run: one pass of the game's loop each, 1/16 s\"");
-    prop("Turns", "Game State", 4, "u32", "Game", "\"writable\": false, \"description\": \"Turns of a mission's game loop run so far\"");
-    prop("Mission", "Game State", 8, "u16", "Game", "\"writable\": false, \"description\": \"The mission being played (the game's level number)\"");
-    prop("Ended", "Game State", 10, "bool", "Game", "\"writable\": false, \"description\": \"The program ended\"");
+    prop("Steps", "Game State", 0, "u32", "Game", "\"writable\": false, \"description\": \"property.steps\"");
+    prop("Turns", "Game State", 4, "u32", "Game", "\"writable\": false, \"description\": \"property.turns\"");
+    prop("Mission", "Game State", 8, "u16", "Game", "\"writable\": false, \"description\": \"property.mission\"");
+    prop("Ended", "Game State", 10, "bool", "Game", "\"writable\": false, \"description\": \"property.ended\"");
     /* the level block, in place (offsets from 0x80108 in the original) */
-    prop("Level.Seed", "Level", 0, "u16", "Level", "\"description\": \"The random seed: seed*0x24A1+0x24DF each draw; loaded with the mission from GAMExx.DAT\"");
-    prop("Level.Timer", "Level", 4, "u16", "Level", "\"description\": \"The level's timer word (0x8010C)\"");
+    prop("Level.Seed", "Level", 0, "u16", "Level", "\"description\": \"property.level_seed\"");
+    prop("Level.Timer", "Level", 4, "u16", "Level", "\"description\": \"property.level_timer\"");
     add("\n] }");
     return g_table;
 }

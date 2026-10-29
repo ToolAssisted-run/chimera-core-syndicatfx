@@ -1,0 +1,21 @@
+{
+	"texts": {
+		"error.game_ended": "A játék véget ért.",
+		"error.missing_file": "A(z) %1 játékfájl hiányzik (a Syndicate Plus CD SYNDICAT\\DATA mappájából).",
+		"error.no_arena": "Nincs memória a játék arénájának.",
+		"error.no_stack": "Nincs memória a játék veremének.",
+		"error.too_many_files": "A játék túl sok fájlt nyitott meg.",
+		"firmware.data_file.about": "Syndicate Plus CD (EA/Bullfrog 1994): %1. Önnek kell megadnia. A csomag a játék adataiból egyet sem tartalmaz. Helyette használható egy saját, módosított fájl is, és a projekt pontosan feljegyzi, melyik fájl volt.",
+		"firmware.file": "%1",
+		"property.ended": "A program véget ért",
+		"property.level_seed": "A véletlenszám-mag: minden húzásnál seed*0x24A1+0x24DF; a küldetéssel együtt töltődik be a GAMExx.DAT fájlból",
+		"property.level_timer": "A pálya időzítőszava (0x8010C)",
+		"property.mission": "A játszott küldetés (a játék pályaszáma)",
+		"property.steps": "Lefutott lépések: a játék ciklusának egy-egy körútja, 1/16 másodpercenként",
+		"property.turns": "Egy küldetés játékciklusának eddig lefutott körei",
+		"setting.language": "Nyelv",
+		"setting.language.about": "A játék nyelve (az eredeti „-c” kapcsoló). A menük a SyndicatFX fordításaiból jönnek, a küldetések ismertetői pedig a CD saját készleteiből. Megváltoztatja a játékot (a szövegeit és az elrendezését), ezért egy felvétel rögzíti.",
+		"setting.sound": "Hang",
+		"setting.sound.about": "A játék beállításában választott hangkártya. A „Sound Blaster” az alapértelmezés, és ez az egyetlen kártya, amelyet a játék támogat. A digitalizált hangjai egyszerre csak egyet szólaltatnak meg, ahogy a kártyán is, a zene pedig a játék saját meghajtóján át az FM-chipen szól. A „None” azt jelenti, hogy nincs kártya (az eredeti „-s” kapcsoló). A játék megvárja, amíg a dala véget ér, mielőtt egy megnyert vagy elveszített küldetés véget érne, ezért a választás megváltoztatja a játékot, és egy felvétel rögzíti."
+	}
+}

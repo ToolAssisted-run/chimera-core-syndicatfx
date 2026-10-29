@@ -6,6 +6,29 @@ usage: tables.py [--data CD_SYNDICAT_DATA_DIR]   (the firmware sizes/hashes come
        without --data the firmware part of the existing waterbox.config is kept)"""
 import sys, os, json, hashlib, re
 
+# ---- the texts a person reads ----------------------------------------------
+# Every one is a key of languages/en.json (chimera docs/translations.md):
+# text() records the key's English and returns the key, each of its
+# arguments after it behind a 0x1F; write_texts() puts them in the table,
+# beside the keys the core's code names.
+TEXTS = {}
+
+
+def text(key, english, *args):
+    if TEXTS.setdefault(key, english) != english:
+        sys.exit("%s has two texts: %r and %r" % (key, TEXTS[key], english))
+    return "\x1f".join([key] + [str(a) for a in args])
+
+
+def write_texts(path):
+    table = json.load(open(path, encoding="utf-8")) if os.path.exists(path) else {"texts": {}}
+    table["texts"].update(TEXTS)
+    table["texts"] = dict(sorted(table["texts"].items()))
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(table, f, indent="\t", ensure_ascii=False)
+        f.write("\n")
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 
@@ -34,21 +57,21 @@ BUTTONS += [
 AXES = [("Mouse Position X", 0, 65535, 32768, "WMouse X"), ("Mouse Position Y", 0, 65535, 32768, "WMouse Y")]
 
 SETTINGS = [
-    {"name": "language", "display": "Language", "type": "enum", "default": "English",
+    {"name": "language", "display": text("setting.language", "Language"), "type": "enum", "default": "English",
      "options": ["English", "French", "Italian"],
-     "description": "The game's language (the original '-c' option). The menus come "
+     "description": text("setting.language.about", "The game's language (the original '-c' option). The menus come "
          "from SyndicatFX's translations, and the mission briefings from the"
          " CD's own sets. It changes the game (its texts and layout), so a "
-         "movie records it."},
-    {"name": "sound", "display": "Sound", "type": "enum", "default": "Sound Blaster",
+         "movie records it.")},
+    {"name": "sound", "display": text("setting.sound", "Sound"), "type": "enum", "default": "Sound Blaster",
      "options": ["Sound Blaster", "None"],
-     "description": "The sound card chosen in the game's setup. 'Sound Blaster' is the "
+     "description": text("setting.sound.about", "The sound card chosen in the game's setup. 'Sound Blaster' is the "
          "default and the only card the game supports. Its digitized sounds "
          "play one at a time, as on the card, and the music plays on its FM "
          "chip through the game's own driver. 'None' is no card (the "
          "original '-s' option). The game waits for its song to end before a"
          " won or lost mission ends, so the choice changes the game, and a "
-         "movie records it."},
+         "movie records it.")},
 ]
 LANG_ARG = {"English": "0", "French": "1", "Italian": "2"}
 
@@ -128,9 +151,15 @@ def with_headers(axes):
     return [dict(a, header=AXIS_HEADERS[a["name"]]) for a in axes]
 
 
-# what every game file's description ends with
-TAIL = (". You have to supply it. The package contains none of the game's data. A modified file of your own can be "
-        "used instead, and the project records exactly which file it was.")
+
+
+def describe(e):
+    """a game file's name and description: keys, the file their argument"""
+    e["display"] = text("firmware.file", "%1", e["id"])
+    e["description"] = text("firmware.data_file.about", "Syndicate Plus CD (EA/Bullfrog 1994): %1. You have to supply it. "
+                            "The package contains none of the game's data. A modified file of your own can be used instead, "
+                            "and the project records exactly which file it was.", "SYNDICAT\\DATA\\" + e["id"])
+    return e
 
 
 def main():
@@ -143,12 +172,10 @@ def main():
         fw = []
         for n in firmware_names():
             b = open(os.path.join(data, have[n]), "rb").read()
-            fw.append({"id": n, "display": n, "name": n, "size": len(b), "sha1": hashlib.sha1(b).hexdigest().upper(),
-                       "description": "Syndicate Plus CD (EA/Bullfrog 1994): SYNDICAT\\DATA\\" + n + TAIL})
+            fw.append(describe({"id": n, "display": "", "name": n, "size": len(b), "sha1": hashlib.sha1(b).hexdigest().upper(),
+                                "description": ""}))
     else:
-        fw = old.get("firmware", [])
-        for e in fw:
-            e["description"] = e["description"].split(". ")[0] + TAIL
+        fw = [describe(e) for e in old.get("firmware", [])]
     cfg = {
         "coreName": "SyndicatFX",
         "kind": "game",
@@ -175,6 +202,7 @@ def main():
         "firmware": fw,
     }
     with open(cfg_path, "w") as f: json.dump(cfg, f, indent=2); f.write("\n")
+    write_texts(os.path.join(HERE, "languages", "en.json"))
     keyb = {"_comment": ["Default bindings: the host mouse on the pointer and its buttons, the keyboard 1:1."],
             "AllTrollers": {"Syndicate Controller": {b[0]: b[3] for b in BUTTONS}},
             "AllTrollersAutoFire": {"Syndicate Controller": {}},

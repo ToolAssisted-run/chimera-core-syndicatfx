@@ -1,0 +1,21 @@
+{
+	"texts": {
+		"error.game_ended": "El joc ha acabat.",
+		"error.missing_file": "Falta el fitxer del joc %1 (del CD de Syndicate Plus, SYNDICAT\\DATA).",
+		"error.no_arena": "No hi ha memòria per a l'arena del joc.",
+		"error.no_stack": "No hi ha memòria per a la pila del joc.",
+		"error.too_many_files": "El joc ha obert massa fitxers.",
+		"firmware.data_file.about": "CD de Syndicate Plus (EA/Bullfrog 1994): %1. Cal subministrar-lo. El paquet no conté cap de les dades del joc. Es pot usar en lloc seu un fitxer modificat propi, i el projecte registra exactament quin fitxer és.",
+		"firmware.file": "%1",
+		"property.ended": "El programa ha acabat",
+		"property.level_seed": "La llavor aleatòria: seed*0x24A1+0x24DF a cada tirada; es carrega amb la missió des de GAMExx.DAT",
+		"property.level_timer": "La paraula del temporitzador del nivell (0x8010C)",
+		"property.mission": "La missió que es juga (el número de nivell del joc)",
+		"property.steps": "Passos executats: una passada del bucle del joc cadascun, 1/16 s",
+		"property.turns": "Torns del bucle de joc d'una missió executats fins ara",
+		"setting.language": "Idioma",
+		"setting.language.about": "L'idioma del joc (l'opció original '-c'). Els menús vénen de les traduccions de SyndicatFX, i els resums de les missions dels propis conjunts del CD. Canvia el joc (els seus textos i la disposició), de manera que una gravació el guarda.",
+		"setting.sound": "So",
+		"setting.sound.about": "La targeta de so triada a la configuració del joc. 'Sound Blaster' és el valor per defecte i l'única targeta que el joc admet. Els seus sons digitalitzats sonen un a la vegada, com a la targeta, i la música sona al seu xip FM amb el controlador propi del joc. 'None' és cap targeta (l'opció original '-s'). El joc espera que acabi la seva cançó abans que acabi una missió guanyada o perduda, de manera que l'elecció canvia el joc, i una gravació la guarda."
+	}
+}

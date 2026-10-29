@@ -1,0 +1,21 @@
+{
+	"texts": {
+		"error.game_ended": "Peli päättyi.",
+		"error.missing_file": "Pelitiedosto %1 puuttuu (Syndicate Plus -CD:ltä, SYNDICAT\\DATA).",
+		"error.no_arena": "Pelin areenalle ei ole muistia.",
+		"error.no_stack": "Pelin pinolle ei ole muistia.",
+		"error.too_many_files": "Peli avasi liian monta tiedostoa.",
+		"firmware.data_file.about": "Syndicate Plus CD (EA/Bullfrog 1994): %1. Sinun täytyy toimittaa se. Paketti ei sisällä yhtään pelin dataa. Sen sijaan voi käyttää omaa muokattua tiedostoa, ja projekti tallentaa tarkalleen, mikä tiedosto se oli.",
+		"firmware.file": "%1",
+		"property.ended": "Ohjelma päättyi",
+		"property.level_seed": "Satunnaissiemen: seed*0x24A1+0x24DF jokaisella arvonnalla; ladataan tehtävän mukana tiedostosta GAMExx.DAT",
+		"property.level_timer": "Tason ajastinsana (0x8010C)",
+		"property.mission": "Pelattava tehtävä (pelin tason numero)",
+		"property.steps": "Suoritetut askeleet: yksi pelisilmukan kierros kerrallaan, 1/16 s",
+		"property.turns": "Tehtävän pelisilmukan kierroksia suoritettu tähän mennessä",
+		"setting.language": "Kieli",
+		"setting.language.about": "Pelin kieli (alkuperäinen '-c'-valinta). Valikot tulevat SyndicatFX:n käännöksistä ja tehtävien esittelyt CD:n omista sarjoista. Se muuttaa peliä (sen tekstejä ja asettelua), joten tallenne tallentaa sen.",
+		"setting.sound": "Ääni",
+		"setting.sound.about": "Pelin asetuksissa valittu äänikortti. 'Sound Blaster' on oletus ja ainoa kortti, jota peli tukee. Sen digitoidut äänet soivat yksi kerrallaan, kuten kortilla, ja musiikki soi sen FM-sirulla pelin oman ajurin kautta. 'None' tarkoittaa ei korttia (alkuperäinen '-s'-valinta). Peli odottaa kappaleensa loppumista ennen kuin voitettu tai hävitty tehtävä päättyy, joten valinta muuttaa peliä, ja tallenne tallentaa sen."
+	}
+}
