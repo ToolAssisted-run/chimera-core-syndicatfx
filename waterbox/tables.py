@@ -183,6 +183,7 @@ def main():
         "systemNames": SYSTEM_NAMES,
         "author": "Bullfrog (1993); SyndicatFX by Mefistotelis, Unavowed, Gynvael Coldwind and fans; chimera port by Sergio Martin",
         "url": "https://github.com/ToolAssisted-run/chimera-core-syndicatfx",
+        "runsOn": ["windows-x86_64", "linux-x86_64", "macos-x86_64"],
         "deterministic": True,
         "_memory_note": "[sbrk, sealed, invisible, plain, mmap] MiB: the 64 MiB i386 arena and the program's 16 MiB stack are mmap'd; the game files are copied into sealed memory",
         "memoryLayoutMiB": [64, 32, 4, 4, 160],
