@@ -209,13 +209,12 @@ The version is the commit the package was built from.
 A hand-built package is for testing. Chimera's publish script refuses a
 version that carries `+local` or `-dirty`.
 
-CI publishes what its gate passed as this repository's own releases: a rolling
-`dev` release on every green push to `main`, and a dated `nightly-YYYY-MM-DD`
-release from the scheduled run (04:00 UTC, only when `main` moved since the
-last one). The gate job uploads the package as the artifact
-`syndicatfx-<commit>` (`actions/upload-artifact@v7`), and the publish job
-hands it to Chimera's reusable workflow `publish-core.yml`. There is no manual
-equivalent.
+CI publishes what its gate passed as this repository's own releases: a dated
+`nightly-YYYY-MM-DD` release from the scheduled run (04:00 UTC, only when
+`main` moved since the last one). The gate job uploads the package as the
+artifact `syndicatfx-<commit>` (`actions/upload-artifact@v7`), and the publish job
+hands it to Chimera's reusable workflow `publish-core.yml`. Starting the
+workflow by hand publishes a nightly too; there is no other way.
 
 ## Install it into Chimera
 
