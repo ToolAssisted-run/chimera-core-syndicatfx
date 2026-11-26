@@ -150,6 +150,14 @@ if [ -n "$(digests < "$work/box.txt")" ] && diff <(digests < "$work/native.txt")
 else
 	report "equivalence" FAIL "$(head -3 "$work/diff.txt" | tr '\n' ' ')"
 fi
+# one picture size from the title through the menus into the mission: a menu's
+# 320x200 is scaled up to the mission's 640x480 (owner, 2026-11-26)
+sizes="$(grep '^videoSizes=' "$work/box.txt")"
+if [ "$sizes" = "videoSizes=640x480" ]; then
+	report "picture:one-size" PASS "every step's picture is 640x480, menus and mission"
+else
+	report "picture:one-size" FAIL "${sizes:-no videoSizes line}"
+fi
 boxed "$wd" --frames $frames > "$work/noinput.txt" 2>&1
 if ! diff -q <(digests < "$work/box.txt") <(digests < "$work/noinput.txt") > /dev/null; then
 	report "equivalence:teeth" PASS "the same run without the movie differs"

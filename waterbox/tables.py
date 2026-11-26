@@ -187,7 +187,7 @@ def main():
         "deterministic": True,
         "_memory_note": "[sbrk, sealed, invisible, plain, mmap] MiB: the 64 MiB i386 arena and the program's 16 MiB stack are mmap'd; the game files are copied into sealed memory",
         "memoryLayoutMiB": [64, 32, 4, 4, 160],
-        "video": {"_comment": "buffer capacity; the live size (320x200 menus, 640x480 missions) comes from GetVideoWidth/Height",
+        "video": {"_comment": "640x480 at all times: a mission's picture as it is, a menu's 320x200 scaled up to it (2 wide, 2.4 high)",
                   "width": 640, "height": 480, "virtualWidth": 640, "virtualHeight": 480,
                   "vsyncNumerator": 16, "vsyncDenominator": 1, "getBgra": "GetVideoBgra"},
         "audio": {"_comment": "The Sound Blaster's digitized sounds and its FM chip's music (or none, with no card), rendered "

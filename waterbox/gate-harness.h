@@ -326,6 +326,8 @@ static int gate_run(const struct gate_core *c, const struct gate_opts *o)
 	const long hashFrom = tail + o->turboSettle;
 	uint64_t vh = 0, th = 0, ah = 0, sh = 0;
 	long lag = 0;
+	/* the picture sizes the run showed, in the order first seen */
+	int sizes[8][2], nsizes = 0;
 	uint8_t buttons[GATE_BTN_COUNT], prev[GATE_BTN_COUNT];
 	int32_t axes[SFX_AXIS_COUNT] = {32768, 32768};
 	memset(prev, 0, sizeof prev);
@@ -368,6 +370,11 @@ static int gate_run(const struct gate_core *c, const struct gate_opts *o)
 		vh = gate_fnv(vh, &w, sizeof w);
 		vh = gate_fnv(vh, &h, sizeof h);
 		vh = gate_fnv(vh, video, (size_t)w * h * 4);
+		{
+			int seen = 0;
+			for (int k = 0; k < nsizes; k++) seen |= sizes[k][0] == w && sizes[k][1] == h;
+			if (!seen && nsizes < 8) { sizes[nsizes][0] = w; sizes[nsizes][1] = h; nsizes++; }
+		}
 		if (f >= hashFrom)
 		{
 			th = gate_fnv(th, &w, sizeof w);
@@ -400,6 +407,9 @@ static int gate_run(const struct gate_core *c, const struct gate_opts *o)
 	if (trace) fclose(trace);
 
 	printf("frames=%ld\n", frames);
+	printf("videoSizes=");
+	for (int k = 0; k < nsizes; k++) printf("%s%dx%d", k ? "," : "", sizes[k][0], sizes[k][1]);
+	printf("\n");
 	printf("vsync=%d/%d\n", c->vsync_numerator(), c->vsync_denominator());
 	printf("videoHash=%016llx\n", (unsigned long long)vh);
 	printf("tailVideoHash=%016llx\n", (unsigned long long)th);

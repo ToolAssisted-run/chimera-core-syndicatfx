@@ -20,8 +20,14 @@ static uint64_t packed;   /* FrameAdvance's first 64 buttons, ORed in for that s
 static int32_t axes[SFX_AXIS_COUNT] = {32768, 32768};
 static HcInput input;
 static int rendering = 1, have_video, ended;
-static uint32_t bgra[640 * 480];
-static int vid_w = 320, vid_h = 200;
+/* Every picture the core gives is 640x480, a mission's size, so the picture
+ * keeps one size all the time (owner, 2026-11-26). A menu's 320x200 picture is
+ * scaled up to it: each pixel is 2 wide, and its rows are 2 or 3 high in turn
+ * (480 / 200 = 2.4), which keeps the 4:3 shape a 320x200 screen had. Only the
+ * picture changes: the game still runs its menus at 320x200 (-S below). */
+#define OUT_W 640
+#define OUT_H 480
+static uint32_t bgra[OUT_W * OUT_H];
 static const int16_t *audio = (const int16_t *)bgra;   /* the last step's sound (none before a step) */
 static int audio_n;
 static char errbuf[256];
@@ -62,7 +68,8 @@ int drv_init(const char *language, int sound, char *err, size_t errlen)
             files[nfiles] = files[i]; files[nfiles++].name = sound_names[k];
         }
     drv_readonly_done();
-    /* -S: menus at their own 320x200; -s: no sound card */
+    /* -S: the game runs its menus at their own 320x200 (the picture is scaled
+     * up above, not by the game); -s: no sound card */
     static const char *argv[] = {"syndicatfx", "-c", "0", "-S", "-s"};
     argv[2] = arg;
     if (sfx_init(files, nfiles, sound ? 4 : 5, argv) < 0) { snprintf(err, errlen, "%s", sfx_error()); return -1; }
@@ -100,16 +107,24 @@ void drv_step(void)
     audio = sfx_audio(&audio_n);
     gamestate_from_game(ended);
     v = sfx_video();
-    vid_w = v->w; vid_h = v->h;
     if (rendering) {
         uint32_t pal[256];
         for (int c = 0; c < 256; c++) pal[c] = 0xFF000000u | (uint32_t)v->palette[4 * c] << 16 | (uint32_t)v->palette[4 * c + 1] << 8 | v->palette[4 * c + 2];
-        for (int i = 0; i < vid_w * vid_h; i++) bgra[i] = pal[v->pixels[i]];
+        if (v->w == OUT_W && v->h == OUT_H) {
+            for (int i = 0; i < OUT_W * OUT_H; i++) bgra[i] = pal[v->pixels[i]];
+        } else if (v->w > 0 && v->h > 0 && v->w <= OUT_W && v->h <= OUT_H) {
+            /* each picture pixel takes the game pixel it falls on */
+            for (int y = 0; y < OUT_H; y++) {
+                const uint8_t *src = v->pixels + (size_t)(y * v->h / OUT_H) * v->w;
+                uint32_t *dst = bgra + (size_t)y * OUT_W;
+                for (int x = 0; x < OUT_W; x++) dst[x] = pal[src[x * v->w / OUT_W]];
+            }
+        }
         have_video = 1;
     }
 }
 
-const uint32_t *drv_video(int *w, int *h) { if (w) *w = vid_w; if (h) *h = vid_h; return bgra; }   /* black until the first picture */
+const uint32_t *drv_video(int *w, int *h) { if (w) *w = OUT_W; if (h) *h = OUT_H; return bgra; }   /* black until the first picture */
 const int16_t *drv_audio(int *frames) { if (frames) *frames = audio_n; return audio; }
 void drv_vsync(int *num, int *den)
 {

@@ -27,8 +27,10 @@ pointers staying 32-bit. Nothing of the game is reimplemented by hand.
   a frame of an animation. The step ends where the game reads its input. The clock is virtual: the game's
   logic never reads it, and a wait that does (the animations' frame delay) sees 1 ms go by at each look,
   so a step that waits lasts as long as the wait (its length is reported per step).
-- **The controls are the mouse and the keyboard**: the pointer is two axes over the picture shown (320x200
-  in the menus, 640x480 in a mission), with the left and right buttons; the keys are the PC keyboard's
+- **The picture is 640x480 at all times**: a mission's picture as the game draws it, and a menu's 320x200
+  scaled up to it (each pixel 2 wide and 2 or 3 rows high in turn), so the window keeps one size.
+- **The controls are the mouse and the keyboard**: the pointer is two axes over the picture shown, with the
+  left and right buttons; the keys are the PC keyboard's
   (letters and digits for the company and agent names and the agent keys, F1-F12, arrows, Esc, Enter,
   Space and the rest).
 - **Settings**: the language (English, French, Italian - the original's `-c`): the menus from SyndicatFX's

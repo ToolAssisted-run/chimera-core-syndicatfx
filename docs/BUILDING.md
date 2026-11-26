@@ -272,6 +272,8 @@ the game's files the gate goes on:
 - `equivalence` and `equivalence:teeth`: native == sandbox over 400 steps into
   the first mission (picture, sound, every step's length, the clock, every
   memory domain), and the same run without the movie differs.
+- `picture:one-size`: every step's picture in that run, the title and menus
+  as well as the mission, is 640x480 (a menu's 320x200 is scaled up to it).
 - `savestate:rerecord`, `savestate:session`: a savestate before every step,
   and a run saved, loaded in a new host and finished there.
 - `turbo`: half the run not drawn, the same machine after.
